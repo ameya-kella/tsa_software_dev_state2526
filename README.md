@@ -3,6 +3,7 @@ Our app, named Signify, aims to bridge the gap that exists between the hearing-i
 
 ## Technical Features
 ### Live Interpreter:
+Easy-to-transport way for ASL speakers (especially those with hearing disabilities) to communicate with anyone at any time through ASL to English translation.
 * ASL to Words Machine Learning Model
   + A custom Transformer model created using Tensorflow -- predicts landmark sequences of video frames into ASL words or "glosses"
 * Words to Sentence model
@@ -48,4 +49,5 @@ To test out our app on your own, install all necessary libraries states n the "r
 You may also need to download certain nltk corpora used in our program.
 
 ```python -m nltk.downloader punkt averaged_perceptron_tagger_eng wordnet omw-1.4 stopwords```
+
 
