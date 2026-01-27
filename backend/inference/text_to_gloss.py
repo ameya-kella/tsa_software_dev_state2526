@@ -107,4 +107,4 @@ def english_to_asl_keywords(sentence):
         # uppercase for ASL style
         keywords.append(lemma.upper())
 
-    return ", ".join(keywords)
+    return " ".join(keywords)

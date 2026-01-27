@@ -1,7 +1,14 @@
 import { View, Platform, StyleSheet } from "react-native";
 import { Stack, Slot } from "expo-router";
+import { useEffect } from "react";
+
+import { aslSocket } from "../src/ws/aslSocket";
 
 export default function Layout() {
+  useEffect(() => {
+    aslSocket.connect();
+  }, []);
+
   return (
     <View style={styles.wrapper}>
       {Platform.OS === "web" ? (

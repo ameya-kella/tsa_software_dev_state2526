@@ -13,7 +13,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-
+import { aslSocket } from "../src/ws/aslSocket";
 
 // Styles
 const styles = StyleSheet.create({
@@ -446,7 +446,6 @@ export default function CameraScreen() {
 
   const isRunningRef = useRef(true);
   const lastFrameLandmarksRef = useRef<number[][] | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
   const holisticRef = useRef<any>(null);
   const cameraUtilsRef = useRef<any>(null);
   const hasInitializedHolisticRef = useRef(false);
@@ -501,18 +500,13 @@ export default function CameraScreen() {
     }, [])
   );
 
-  // Connecting WebSocket server
+  // ----- WebSocket handling with aslSocket -----
   useEffect(() => {
-    wsRef.current = new WebSocket("ws://192.168.1.175:8000/ws");
-
-    wsRef.current.onopen = () => console.log("WebSocket connected");
-    wsRef.current.onclose = () => console.log("WebSocket disconnected");
-
-    wsRef.current.onmessage = (event) => {
+    // subscribe returns an unsubscribe function
+    const unsubscribe = aslSocket.subscribe((data: WSData) => {
       if (!isFocusedRef.current) return;
 
-      const data: WSData = JSON.parse(event.data);
-
+      // Sentence generation flow
       if (isGeneratingRef.current) {
         if (data.confidence !== null) setConfidence(data.confidence);
 
@@ -520,7 +514,6 @@ export default function CameraScreen() {
           const sentence = data.generated_sentence.trim();
           if (sentence.length > 0) {
             setGeneratedSentence(sentence);
-
             setIsGenerating(false);
             isGeneratingRef.current = false;
             isRunningRef.current = true;
@@ -529,6 +522,7 @@ export default function CameraScreen() {
         return;
       }
 
+      // live sign detection
       if (data.current_sign) {
         const word = data.current_sign.trim();
 
@@ -548,7 +542,11 @@ export default function CameraScreen() {
           }
         }
 
-        if (isRunningRef.current && !isFrozenRef.current && !isGeneratingRef.current) {
+        if (
+          isRunningRef.current &&
+          !isFrozenRef.current &&
+          !isGeneratingRef.current
+        ) {
           setLiveText(word);
         } else {
           setLiveText("—");
@@ -556,21 +554,17 @@ export default function CameraScreen() {
       }
 
       if (data.confidence !== null) setConfidence(data.confidence);
-      if (typeof data.generated_sentence === "string") {
-        const sentence = data.generated_sentence.trim();
-        if (sentence.length > 0) {
-          setGeneratedSentence(sentence);
-        }
-      }
-    };
+    });
 
-    return () => wsRef.current?.close();
+    // Return the cleanup function explicitly
+    return () => {
+      unsubscribe(); // make sure it’s called
+    };
   }, []);
 
+  // send landmarks (or trigger sentence generation) via aslSocket
   const sendLandmarks = (landmarks: number[][], generateSentence = false) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-    const payload = { landmarks, generate_sentence: generateSentence };
-    wsRef.current.send(JSON.stringify(payload));
+    aslSocket.sendLandmarks(landmarks, generateSentence);
   };
 
 
@@ -643,7 +637,7 @@ export default function CameraScreen() {
       try {
         const photo = await cameraRef.current?.takePictureAsync({ base64: true });
         if (photo?.base64) {
-          wsRef.current?.send(JSON.stringify({ image: photo.base64 }));
+          aslSocket.sendImage(photo.base64);
           console.log("Mobile frame sent to server");
         }
       } catch (err) {
