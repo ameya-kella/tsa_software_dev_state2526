@@ -36,7 +36,9 @@ Software Installed:
 - WebSockets for server
 
 ## Code structure:
-The main 2 folders with our code are "app" and "backend." The "app" folder contains the UI-related code, while the "backend" folder contains scripts for the backend of our app, which we have set up locally using WebSockets. Due to the large size of the models, we did not upload them here; however, to view the model architectures and frameworks we used, you can find them inside the "backend" folder.
+The main 2 folders with our code are "app" and "backend." The "app" folder contains the UI-related code, while the "backend" folder contains scripts for the backend of our app, which we have set up locally using WebSockets. 
+
+Due to the large size of the models, we did not upload them here; however, they are available for download at https://drive.google.com/drive/folders/1x0KjHnAD7iHUkfxQgbU40-mMhUUc9zPu?usp=sharing. To view the model architectures and frameworks we used, you can find them inside the "backend" folder.
 
 ## Usage / Installation:
 To test out our app on your own, install all necessary libraries states n the "requirements.txt" file.
