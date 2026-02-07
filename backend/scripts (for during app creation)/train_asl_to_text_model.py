@@ -119,6 +119,20 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     def call(self, x, mask):
         return self.mha(x, x, attention_mask=mask)
 
+@tf.keras.utils.register_keras_serializable()
+class AttentionPooling(tf.keras.layers.Layer):
+    def __init__(self):
+        super().__init__()
+        self.score_dense = tf.keras.layers.Dense(1)
+        self.norm = tf.keras.layers.LayerNormalization()
+
+    def call(self, x, mask):
+        mask = mask[..., None]
+        score = self.norm(x)
+        score = self.score_dense(score)
+        score += (1.0 - mask) * -1e9
+        weights = tf.nn.softmax(score, axis=1)
+        return tf.reduce_sum(x * weights, axis=1)
 
 @tf.keras.utils.register_keras_serializable()
 class Transformer(tf.keras.layers.Layer):
@@ -148,22 +162,6 @@ class Transformer(tf.keras.layers.Layer):
             x = x + 0.5 * mha(ln1(x), mha_mask)
             x = x + 0.5 * mlp(ln2(x))
         return x
-
-
-@tf.keras.utils.register_keras_serializable()
-class AttentionPooling(tf.keras.layers.Layer):
-    def __init__(self):
-        super().__init__()
-        self.score_dense = tf.keras.layers.Dense(1)
-        self.norm = tf.keras.layers.LayerNormalization()
-
-    def call(self, x, mask):
-        mask = mask[..., None]
-        score = self.norm(x)
-        score = self.score_dense(score)
-        score += (1.0 - mask) * -1e9
-        weights = tf.nn.softmax(score, axis=1)
-        return tf.reduce_sum(x * weights, axis=1)
 
 
 # model
@@ -231,5 +229,5 @@ model.save("asl_model.keras")
 # convert to tflite as well
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
 tflite_model = converter.convert()
-with open("asl_model_fp32.tflite", "wb") as f:
+with open("asl_model.tflite", "wb") as f:
     f.write(tflite_model)

@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: "#0b1220" },
   phoneFrame: {
     width: 440,
-    height: 952,
+    height: 800,
     marginLeft: "auto",
     marginRight: "auto",
     borderWidth: 1,

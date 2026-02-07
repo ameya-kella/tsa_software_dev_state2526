@@ -471,6 +471,14 @@ export default function CameraScreen() {
     }
   }, [isConversationMode]);
 
+  useEffect(() => {
+    if (isConversationMode) {
+      aslSocket.sendContext({ flow: "conversation" });
+    } else {
+      aslSocket.sendContext({ flow: "interpreter" });
+    }
+  }, [isConversationMode]);
+
   useFocusEffect(
     useCallback(() => {
       isFocusedRef.current = true;
@@ -500,7 +508,7 @@ export default function CameraScreen() {
     }, [])
   );
 
-  // ----- WebSocket handling with aslSocket -----
+  // WebSocket handling w/ aslSocket
   useEffect(() => {
     // subscribe returns an unsubscribe function
     const unsubscribe = aslSocket.subscribe((data: WSData) => {
@@ -556,9 +564,8 @@ export default function CameraScreen() {
       if (data.confidence !== null) setConfidence(data.confidence);
     });
 
-    // Return the cleanup function explicitly
     return () => {
-      unsubscribe(); // make sure it’s called
+      unsubscribe();
     };
   }, []);
 
@@ -743,14 +750,16 @@ export default function CameraScreen() {
         });
       }
     }
-    // Pushing to the TTS output screen
-    const url = `/output?text=${encodeURIComponent(finalText)}&autoGoConversation=${isConversationMode}`;
 
-    // Push to output screen
+    // Push to output screen using `deafText` for confirmed messages
+    const url = `/output?deafText=${encodeURIComponent(finalText)}&autoGoConversation=${isConversationMode}`;
+
     router.push(url);
   };
 
   const handleClear = () => {
+    aslSocket.clearRecognizedWords(); // tell backend to reset
+
     hasAutoSentRef.current = false;
     if (liveText && liveText !== "—") {
       lockedWordRef.current = liveText;
@@ -761,12 +770,13 @@ export default function CameraScreen() {
     hasGeneratedSentenceRef.current = false;
 
     setLiveText("—");
-    setGeneratedSentence("Waiting for input...");
+    setGeneratedSentence("");
     setConfidence(0);
 
     setHasGeneratedSentence(false);
     setDetectedWords([]);
     lastDetectedWordRef.current = null;
+    ignoreUntilSignChangeRef.current = true; // ignore next word
 
     if (!isFrozenRef.current) isRunningRef.current = true;
   };
@@ -807,7 +817,9 @@ export default function CameraScreen() {
       <SafeAreaView style={styles.topBarSafe}>
         <View style={styles.topBar}>
           <View>
-            <Text style={styles.overlayTitle}>Live Interpreter</Text>
+            <Text style={styles.overlayTitle}>
+              {isConversationMode ? "Live Conversation" : "Live Interpreter"}
+            </Text>
             <View style={styles.statusPill}>
               <View style={styles.statusDot} />
               <Text style={styles.statusText}>{isGenerating ? "Generating…" : isFrozen ? "Paused" : "Live"}</Text>

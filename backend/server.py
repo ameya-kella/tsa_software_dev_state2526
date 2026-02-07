@@ -7,18 +7,13 @@ import subprocess
 import tempfile
 import os
 import logging
-
 import whisper
-
-from backend.inference.predictor import LiveASLPredictor
-from backend.inference.sentence import generate_sentence_from_words
+from backend.scripts.predictor import LiveASLPredictor
+from backend.scripts.sentence import generate_sentence_from_words
 from backend.inference.config import TFLITE_MODEL_PATH, ORD2SIGN
 from backend.inference.text_to_gloss import english_to_asl_keywords
 
-# ------------------------------------------------------------------------------
 # Setup
-# ------------------------------------------------------------------------------
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("asl-backend")
 
@@ -32,52 +27,56 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ------------------------------------------------------------------------------
 # Models
-# ------------------------------------------------------------------------------
-
 whisper_model = whisper.load_model("base")
 predictor = LiveASLPredictor(TFLITE_MODEL_PATH, ORD2SIGN)
 
-# ------------------------------------------------------------------------------
 # Helpers
-# ------------------------------------------------------------------------------
-
-def append_word(words: list[str], sign: str, confidence: float | None):
-    """Append sign if valid and not a duplicate of the last one."""
+def append_word(words: list[str], sign: str, confidence: float | None) -> bool:
     if confidence is None:
-        return
+        return False
     if sign in ("—", "TV"):
-        return
-    if not words or sign != words[-1]:
+        return False
+    if not words or sign not in words:
         words.append(sign)
+        return True
+    return False
 
-# ------------------------------------------------------------------------------
-# WebSocket Endpoint
-# ------------------------------------------------------------------------------
 
+# WebSocket endpoint
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     logger.info("WebSocket connected")
 
-    # 🔒 Per-connection state
+    # per-connection state
     recognized_words: list[str] = []
 
     try:
         while True:
             data = await ws.receive_json()
 
-            # ----------------------------------
-            # Heartbeat ping from client
-            # ----------------------------------
             if data.get("type") == "ping":
                 await ws.send_json({"type": "pong"})
                 continue
 
-            # ----------------------------------
+            if data.get("type") == "context":
+                predictor.reset(flow=data.get("flow"))
+                await ws.send_json({"type": "flow_reset", "flow": predictor.active_flow})
+                continue
+
+            # clear recognized words
+            if data.get("type") == "clear":
+                logger.info("Clearing recognized words (client request)")
+                recognized_words.clear()
+                predictor.reset()
+                await ws.send_json({
+                    "type": "cleared",
+                    "recognized_words": []
+                })
+                continue
+
             # Landmark inference
-            # ----------------------------------
             landmarks = np.array(data.get("landmarks", []), dtype=np.float32)
             if landmarks.size == 0:
                 continue
@@ -85,7 +84,8 @@ async def websocket_endpoint(ws: WebSocket):
             generate_sentence = bool(data.get("generate_sentence", False))
 
             sign, confidence, top5 = predictor.update(landmarks)
-            append_word(recognized_words, sign, confidence)
+            was_added = append_word(recognized_words, sign, confidence)
+
 
             sentence = ""
             if generate_sentence:
@@ -93,11 +93,9 @@ async def websocket_endpoint(ws: WebSocket):
                 sentence = generate_sentence_from_words(recognized_words)
                 recognized_words.clear()
 
-            # ----------------------------------
-            # Normalize payload
-            # ----------------------------------
+            current_sign = sign if was_added else None
             response = {
-                "current_sign": str(sign),
+                "current_sign": current_sign,
                 "confidence": float(confidence) if confidence is not None else None,
                 "top5": (
                     [[s, float(c)] for s, c in top5]
@@ -107,6 +105,7 @@ async def websocket_endpoint(ws: WebSocket):
                 "recognized_words": recognized_words,
                 "generated_sentence": sentence,
             }
+
 
             await ws.send_json(response)
 
@@ -119,10 +118,7 @@ async def websocket_endpoint(ws: WebSocket):
         recognized_words.clear()
         await ws.close()
 
-# ------------------------------------------------------------------------------
-# REST: Audio Transcription
-# ------------------------------------------------------------------------------
-
+# REST: speech to text
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
     uid = str(uuid.uuid4())
@@ -149,10 +145,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
     return {"text": result["text"]}
 
-# ------------------------------------------------------------------------------
-# REST: English → ASL-style Gloss
-# ------------------------------------------------------------------------------
-
+# REST: english --> ASL-style gloss
 @app.post("/convert_to_asl_style")
 async def convert_to_asl_style(text: str):
     try:

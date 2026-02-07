@@ -5,8 +5,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[1]
 
 # file path mapping
-ORD2SIGN_PATH = BASE_DIR / "data" / "ord2sign.json"
-TFLITE_MODEL_PATH = str(BASE_DIR / "models" / "asl_model_fp32.tflite")
+ORD2SIGN_PATH = BASE_DIR / "data" / "ord2sign_test.json"
+TFLITE_MODEL_PATH = str(BASE_DIR / "models" / "asl_model_rerec.tflite")
 
 # constants for ASL --> text model (match the training)
 ROWS_PER_FRAME = 543

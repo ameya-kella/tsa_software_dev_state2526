@@ -4,17 +4,21 @@ import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import { Ionicons } from "@expo/vector-icons";
 
+type Params = {
+  text?: string; // text from hearing person
+  deafText?: string; // text from deaf person
+  autoGoConversation?: string;
+};
+
 export default function OutputScreen() {
-  const params = useLocalSearchParams<{ 
-    text?: string; 
-    autoGoConversation?: string; 
-  }>();
-
-  console.log('Params:', params);
-
+  const params = useLocalSearchParams<Params>();
   const router = useRouter();
 
-  const text = useMemo(() => (params?.text ? String(params.text) : "Waiting for input..."), [params]);
+  const text = useMemo(() => {
+    if (params?.deafText && params.deafText.trim()) return params.deafText;
+    if (params?.text && params.text.trim()) return params.text;
+    return "Waiting for input...";
+  }, [params]);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   // check for valid text
@@ -24,7 +28,7 @@ export default function OutputScreen() {
   const autoGoConversation = params?.autoGoConversation === "true";
 
   const speak = () => {
-    if (isSpeaking) return; // prevent multiple TTS triggers simultaneously
+    if (!hasRealText || isSpeaking) return;
 
     Speech.stop();
     setIsSpeaking(true);
@@ -37,8 +41,14 @@ export default function OutputScreen() {
         console.log("Speech done");
         setIsSpeaking(false);
         if (autoGoConversation) {
-          console.log("Redirecting to /speech");
-          router.push("/speech");
+          console.log("Redirecting to /speech with deafText");
+          console.log(params.deafText);
+          router.push({
+            pathname: "/speech",
+            params: {
+              deafText: params.deafText || params.text,
+            },
+          });
         }
       },
       onStopped: () => {
@@ -52,7 +62,6 @@ export default function OutputScreen() {
     });
   };
 
-
   const stop = () => {
     Speech.stop();
     setIsSpeaking(false);
@@ -60,7 +69,7 @@ export default function OutputScreen() {
 
   useEffect(() => {
     if (hasRealText) speak();
-  }, [hasRealText]);
+  }, [text]);
 
   return (
     <View style={styles.container}>

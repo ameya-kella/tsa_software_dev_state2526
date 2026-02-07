@@ -7,12 +7,34 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const [isAutomated, setIsAutomated] = useState(false);
-
   const toggleSwitch = async () => {
     const newState = !isAutomated;
     setIsAutomated(newState);
     await AsyncStorage.setItem("isAutomated", JSON.stringify(newState));
   };
+
+  useEffect(() => {
+    const resetInterpreterFlow = async () => {
+      try {
+        // Clear saved messages
+        await AsyncStorage.removeItem("speech_messages_v1");
+
+        // Reset backend demo flow
+        if (global.ws && global.ws.readyState === WebSocket.OPEN) {
+          global.ws.send(JSON.stringify({
+            type: "context",
+            flow: "interpreter",
+          }));
+          console.log("Sent flow reset to backend");
+        }
+      } catch (err) {
+        console.error("Failed to clear messages or reset flow", err);
+      }
+    };
+
+    resetInterpreterFlow();
+  }, []);
+
 
   useEffect(() => {
     const loadState = async () => {

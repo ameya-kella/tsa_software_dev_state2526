@@ -8,11 +8,13 @@ export type ASLBackendResponse = {
 
 type MessageHandler = (data: ASLBackendResponse) => void;
 
+
 export class ASLWebSocket {
   private ws: WebSocket | null = null;
   private handlers = new Set<MessageHandler>();
   private reconnectTimer: any = null;
   private heartbeatTimer: any = null;
+  private lastContext: { flow: "interpreter" | "conversation" } | null = null;
 
   constructor(
     private url: string,
@@ -34,6 +36,9 @@ export class ASLWebSocket {
     this.ws.onopen = () => {
       console.log("[ASL WS] connected");
       this.startHeartbeat();
+      if (this.lastContext) {
+        this.ws.send(JSON.stringify({ type: "context", ...this.lastContext }));
+      }
     };
 
     this.ws.onmessage = (msg) => {
@@ -65,6 +70,11 @@ export class ASLWebSocket {
     }
   }
 
+  clearRecognizedWords() {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type: "clear" }));
+    }
+  }
 
   subscribe(handler: MessageHandler) {
     this.handlers.add(handler);
@@ -99,5 +109,14 @@ export class ASLWebSocket {
   private cleanup() {
     clearInterval(this.heartbeatTimer);
     this.heartbeatTimer = null;
+  }
+  
+  sendContext(ctx: { flow: "interpreter" | "conversation" }) {
+    this.lastContext = ctx;
+
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type: "context", ...ctx }));
+    } else {
+    }
   }
 }
