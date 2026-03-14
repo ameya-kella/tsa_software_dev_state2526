@@ -8,8 +8,11 @@ import tempfile
 import os
 import logging
 import whisper
+
+## CHANGE THESE FROM "SCRIPTS" TO "INFERENCE" ****************************
 from backend.scripts.predictor import LiveASLPredictor
 from backend.scripts.sentence import generate_sentence_from_words
+
 from backend.inference.config import TFLITE_MODEL_PATH, ORD2SIGN
 from backend.inference.text_to_gloss import english_to_asl_keywords
 

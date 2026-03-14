@@ -33,7 +33,7 @@ Software Installed:
 - Windows 11
 - Visual Studio Code
 - Python 3.12.3
-- Libraries/Frameworks: So far, we have installed mediapipe, open-cv, tensorflow, keras, pandas, numpy, sci-kit learn, nltk, pytorch, expo, and react-native
+- Libraries/Frameworks: We have installed mediapipe, open-cv, tensorflow, keras, pandas, numpy, sci-kit learn, nltk, pytorch, expo, and react-native
 - WebSockets for server
 
 ## Code structure:
