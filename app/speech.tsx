@@ -366,12 +366,6 @@ export default function SpeechScreen() {
                 }}
               >
                 <View style={styles.videoPreview}>
-                  {item.aslThumbnail && playingVideoId !== item.id && (
-                    <Image
-                      source={{ uri: item.aslThumbnail }}
-                      style={styles.thumbnail}
-                    />
-                  )}
                   <Ionicons name="play-circle" size={48} color="white" style={styles.playIcon} />
                 </View>
               </TouchableOpacity>

@@ -2,6 +2,10 @@ import nltk
 from nltk.corpus import stopwords, wordnet
 from nltk.stem import WordNetLemmatizer
 from nltk import pos_tag, word_tokenize
+import os
+import string
+from pathlib import Path
+
 
 # this file is for converting english text --> asl-styled text
 # ex: "I like to go to parks." --> "ME LIKE GO PARK"
@@ -62,6 +66,15 @@ TIME_WORDS = {
 }
 
 
+BASE_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = BASE_DIR.parent
+VIDEO_DIR = BACKEND_DIR / "data" / "sample_videos_preprocessed"
+
+# for checking if raw word already has a processed video
+AVAILABLE_SIGNS = {
+    f.stem.replace("_processed", "")
+    for f in VIDEO_DIR.glob("*_processed.mp4")
+}
 # function to map NLTK POS tags to WordNet POS
 def get_wordnet_pos(treebank_tag):
     if treebank_tag.startswith('J'):
@@ -75,18 +88,25 @@ def get_wordnet_pos(treebank_tag):
     else:
         return None
 
-import string
 
 def english_to_asl_keywords(sentence):
     words = word_tokenize(sentence.lower())
+    print(words)
 
-    keywords = []
-    tagged = pos_tag(words)
+    final_tokens = []
 
-    for word, tag in tagged:
-        # skip punctuation
+    for word in words:
         if word in string.punctuation:
             continue
+
+        
+        if word in AVAILABLE_SIGNS:
+            final_tokens.append(word.upper())
+            continue
+
+        # otherwise do NLP like normal
+        tagged = pos_tag([word])[0]
+        tag = tagged[1]
 
         # remove filler words
         if word in stop_words and word not in PRONOUN_MAP:
@@ -94,7 +114,7 @@ def english_to_asl_keywords(sentence):
 
         # map pronouns first
         if word in PRONOUN_MAP:
-            keywords.append(PRONOUN_MAP[word])
+            final_tokens.append(PRONOUN_MAP[word])
             continue
 
         # remove auxiliaries
@@ -108,17 +128,15 @@ def english_to_asl_keywords(sentence):
         else:
             lemma = word
 
-        # uppercase for ASL style
-        keywords.append(lemma.upper())
+        final_tokens.append(lemma.upper())
 
     time_tokens = []
     main_tokens = []
 
-    for word in keywords:
+    for word in final_tokens:
         if word.lower() in TIME_WORDS:
             time_tokens.append(word.upper())
         else:
             main_tokens.append(word)
 
     return " ".join(time_tokens + main_tokens)
-

@@ -13,12 +13,15 @@ import tempfile
 import os
 import logging
 import whisper
+import shutil
 
-from backend.inference.predictor import LiveASLPredictor
-from backend.inference.sentence import generate_sentence_from_words
+## CHANGE THESE FROM "SCRIPTS" TO "INFERENCE" ****************************
+from backend.scripts.predictor import LiveASLPredictor
+from backend.scripts.sentence import generate_sentence_from_words
 
 from backend.inference.config import TFLITE_MODEL_PATH, ORD2SIGN
 from backend.inference.text_to_gloss import english_to_asl_keywords
+
 from pydantic import BaseModel
 
 import nltk
@@ -40,10 +43,14 @@ app.add_middleware(
 # Models
 whisper_model = whisper.load_model("base")
 predictor = LiveASLPredictor(TFLITE_MODEL_PATH, ORD2SIGN)
-SIGN_VIDEO_DIR = "backend/data/test_stitching"
-VIDEO_CACHE_DIR = "backend/video_cache" # for repeat messages -- just used saved videos to save time
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+SIGN_VIDEO_DIR = BASE_DIR / "data" / "sample_videos_preprocessed"
+VIDEO_CACHE_DIR = "backend/video_cache"
 
 os.makedirs(VIDEO_CACHE_DIR, exist_ok=True)
+
 
 @app.on_event("startup")
 def download_nltk():
@@ -53,7 +60,8 @@ def download_nltk():
     nltk.download('omw-1.4')
     nltk.download('stopwords')
 
-# helper for words --> sentence model
+
+# Helper for words --> sentence model
 def append_word(words: list[str], sign: str, confidence: float | None) -> bool:
     if confidence is None:
         return False
@@ -64,7 +72,7 @@ def append_word(words: list[str], sign: str, confidence: float | None) -> bool:
         return True
     return False
 
-# helper for asl-style english
+# Helper for asl-style english
 class TextInput(BaseModel):
     text: str
 
@@ -180,11 +188,8 @@ async def convert_to_asl_style(input: TextInput):
         logger.exception("ASL conversion error")
         return {"error": str(e)}
 
-from moviepy.editor import VideoFileClip, concatenate_videoclips
-
 @app.post("/generate_asl_video")
 async def generate_asl_video(data: dict):
-    ## FIX THIS LATER
     try:
         gloss = data.get("gloss", "")
         if not gloss:
@@ -194,38 +199,38 @@ async def generate_asl_video(data: dict):
         video_id = hashlib.md5(gloss.encode()).hexdigest()
         output_path = os.path.join(VIDEO_CACHE_DIR, f"{video_id}.mp4")
 
-        # return the cached video if it exists
+        # Return cached video if it exists
         if os.path.exists(output_path):
             return {"video_url": f"/video/{video_id}"}
 
-        # collect preprocessed clip paths
+        # Collect preprocessed clip paths
         clip_paths = []
         for word in words:
-            clip_file = os.path.join(SIGN_VIDEO_DIR, f"{word.lower()}.mp4")
-            if os.path.exists(clip_file):
-                clip_paths.append(clip_file)
+            clip = SIGN_VIDEO_DIR / f"{word.lower()}_processed.mp4"
+            if clip.exists():
+                clip_paths.append(str(clip))
 
         if not clip_paths:
             return {"error": "No matching sign clips"}
 
-        # load clips and pad/resize to 1280x720
-        clips = []
-        for path in clip_paths:
-            clip = VideoFileClip(path)
-            clip = clip.resize(height=720).on_color(size=(1280,720), color=(255,255,255), pos='center')
-            clips.append(clip)
+        # If only one clip, just copy it
+        if len(clip_paths) == 1:
+            shutil.copy(clip_paths[0], output_path)
+        else:
+            # Create concat list file for ffmpeg
+            concat_file = os.path.join(VIDEO_CACHE_DIR, f"{video_id}.txt")
+            with open(concat_file, "w") as f:
+                for clip in clip_paths:
+                    f.write(f"file '{os.path.abspath(clip)}'\n")
 
-        # concatenate with 0.2s crossfade
-        final_clip = concatenate_videoclips(clips, method="compose", padding=-0.2)  # negative padding = overlap crossfade
-        final_clip.write_videofile(output_path, codec="libx264", audio=False, threads=4, logger=None)
-
-        # generate thumbnail
-        thumb_path = os.path.join(VIDEO_CACHE_DIR, f"{video_id}.jpg")
-        final_clip.save_frame(thumb_path, t=0.1)
+            # Merge clips using concat demuxer (fast, no re-encoding)
+            subprocess.run([
+                "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+                "-i", concat_file, "-c", "copy", output_path
+            ], check=True)
 
         return {
-            "video_url": f"/video/{video_id}",
-            "thumbnail_url": f"/thumbnail/{video_id}"
+            "video_url": f"/video/{video_id}"
         }
 
     except Exception as e:
@@ -249,7 +254,7 @@ def get_video(video_id: str, request: Request):
             byte1 = int(g[0])
             if g[1]:
                 byte2 = int(g[1])
-        chunk_size = 1024 * 1024
+        chunk_size = 1024 * 1024  # 1MB
         byte2 = byte2 or min(byte1 + chunk_size, file_size - 1)
         length = byte2 - byte1 + 1
         with open(path, "rb") as f:
@@ -275,9 +280,3 @@ def get_video(video_id: str, request: Request):
             }
         )
 
-@app.get("/thumbnail/{video_id}")
-def get_thumbnail(video_id: str):
-    path = os.path.join(VIDEO_CACHE_DIR, f"{video_id}.jpg")
-    if not os.path.exists(path):
-        return JSONResponse(status_code=404, content={"error": "Thumbnail not found"})
-    return FileResponse(path, media_type="image/jpeg", headers={"Access-Control-Allow-Origin": "*"})
