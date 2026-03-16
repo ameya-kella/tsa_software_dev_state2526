@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   SafeAreaView,
   Animated,
+  Image,
   Switch,
   Alert,
 } from "react-native";
@@ -20,6 +21,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Audio } from "expo-av";
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const USE_MOCK_TRANSCRIBE = false;
 const STORAGE_KEY = "speech_messages_v1";
@@ -29,6 +32,8 @@ export const API_BASE = "http://localhost:8000";
 
 const TRANSCRIBE_URL = `${API_BASE}/transcribe`;
 const ASL_STYLE_URL = `${API_BASE}/convert_to_asl_style`;
+const ASL_VIDEO_URL = `${API_BASE}/generate_asl_video`;
+
 
 type ChatMsg = {
   id: string;
@@ -36,6 +41,8 @@ type ChatMsg = {
   text: string;
   ts: number;
   aslText?: string;
+  aslVideo?: string;
+  aslThumbnail?: string;
 };
 
 export default function SpeechScreen() {
@@ -60,6 +67,8 @@ export default function SpeechScreen() {
   const webRecorderRef = useRef<MediaRecorder | null>(null);
   const webChunksRef = useRef<Blob[]>([]);
   const params = useLocalSearchParams<{ deafText?: string }>();
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const messageQueue = useRef<ChatMsg[]>([]);
 
   // WebSocket
   const connectWS = () => {
@@ -69,11 +78,21 @@ export default function SpeechScreen() {
     ws.onopen = () => {
       console.log("WS connected");
 
-      if (!initialDeafInjected && params.deafText) {
-        addMessage("deaf", params.deafText);
-        setInitialDeafInjected(true);
+      if (messageQueue.current.length > 0) {
+        console.log("Flushing queued messages:", messageQueue.current);
+
+        // concept of "queueing" so that messages are not lost even if server is not connected yet
+        setMessages((prev) => [...prev, ...messageQueue.current]);
+        messageQueue.current.forEach((msg) => console.log("Message displayed on screen from queue:", msg));
+
+        messageQueue.current = [];
       }
+
+      AsyncStorage.getItem(STORAGE_KEY).then((saved) => {
+        if (saved) setMessages(JSON.parse(saved));
+      });
     };
+
     ws.onclose = () => {
       console.log("WS closed — reconnecting...");
       setTimeout(connectWS, 2000);
@@ -91,10 +110,31 @@ export default function SpeechScreen() {
   };
 
   useEffect(() => {
-    connectWS();
-    return () => wsRef.current?.close();
-  }, []);
-  const [initialDeafInjected, setInitialDeafInjected] = useState(false);
+      connectWS();
+      return () => wsRef.current?.close();
+    }, []);
+    
+  useEffect(() => {
+    if (!params.deafText) return;
+
+    setMessages((prev) => {
+      const exists = prev.find((m) => m.sender === "deaf" && m.text === params.deafText);
+      if (exists) return prev;
+      const id = String(Date.now()) + "_" + Math.random().toString(16).slice(2);
+      const newMsg: ChatMsg = { id, sender: "deaf", text: params.deafText!, ts: Date.now() };
+
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify(newMsg));
+      } else {
+        messageQueue.current.push(newMsg);
+        console.log("WS not ready, queued deaf message");
+        console.log("Current queue:", messageQueue.current);
+
+      }
+
+      return [...prev, newMsg];
+    });
+  }, [params.deafText]);
 
   // scroll to bottom
   useEffect(() => {
@@ -103,12 +143,25 @@ export default function SpeechScreen() {
   }, [messages]);
 
   // Persisting messages in convo
-  useEffect(() => {
-    (async () => {
-      const saved = await AsyncStorage.getItem(STORAGE_KEY);
-      if (saved) setMessages(JSON.parse(saved));
-    })();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadMessages = async () => {
+        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const savedMsgs: ChatMsg[] = JSON.parse(saved);
+          setMessages(prev => {
+            const merged = [...prev, ...savedMsgs.filter(m => !prev.find(p => p.id === m.id))];
+            merged.sort((a, b) => a.ts - b.ts);
+            return merged;
+
+          });
+        }
+      };
+      loadMessages();
+    }, [])
+  );
+
+
 
   useEffect(() => {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
@@ -117,10 +170,11 @@ export default function SpeechScreen() {
   // converting to ASL-style english
   const sendToAslStyleEnglish = async (text: string) => {
     if (USE_MOCK_TRANSCRIBE) return text;
-    const res = await fetch(
-      ASL_STYLE_URL + "?text=" + encodeURIComponent(text),
-      { method: "POST" }
-    );
+    const res = await fetch(ASL_STYLE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+  });
     const data = await res.json();
     return data?.asl_style || text;
   };
@@ -132,13 +186,36 @@ export default function SpeechScreen() {
 
     setMessages((prev) => [...prev, newMsg]);
 
-    wsRef.current?.send(JSON.stringify(newMsg));
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(newMsg));
+    } else {
+      messageQueue.current.push(newMsg);
+      console.log("WS not ready, queued message");
+    }
 
     if (sender === "hearing") {
       try {
         const aslText = await sendToAslStyleEnglish(text);
+
+        const res = await fetch(ASL_VIDEO_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gloss: aslText }),
+        });
+
+        const videoData = await res.json();
+
         setMessages((prev) =>
-          prev.map((m) => (m.id === id ? { ...m, aslText } : m))
+          prev.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  aslText,
+                  aslVideo: API_BASE + videoData.video_url,
+                  aslThumbnail: API_BASE + videoData.thumbnail_url,
+                }
+              : m
+          )
         );
       } catch (err) {
         console.error("ASL error", err);
@@ -273,14 +350,36 @@ export default function SpeechScreen() {
             </Text>
           </View>
           {showAsl && item.aslText && (
-            <View style={[styles.bubble, styles.bubbleASL]}>
-              <View style={styles.aslHeaderRow}>
-                <Ionicons name="swap-horizontal" size={14} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.aslHeaderText}>ASL-style English</Text>
-              </View>
-              <Text style={styles.aslText}>{item.aslText}</Text>
+          <View style={[styles.bubble, styles.bubbleASL]}>
+            <View style={styles.aslHeaderRow}>
+              <Ionicons name="swap-horizontal" size={14} color="rgba(255,255,255,0.9)" />
+              <Text style={styles.aslHeaderText}>ASL-style English</Text>
             </View>
-          )}
+
+            <Text style={styles.aslText}>{item.aslText}</Text>
+
+            {item.aslVideo && (
+              <TouchableOpacity
+                onPress={() => {
+                  setPlayingVideoId(item.id);
+                  router.push({ pathname: "/videoPlayer", params: { url: item.aslVideo } });
+                }}
+              >
+                <View style={styles.videoPreview}>
+                  {item.aslThumbnail && playingVideoId !== item.id && (
+                    <Image
+                      source={{ uri: item.aslThumbnail }}
+                      style={styles.thumbnail}
+                    />
+                  )}
+                  <Ionicons name="play-circle" size={48} color="white" style={styles.playIcon} />
+                </View>
+              </TouchableOpacity>
+            )}
+
+
+          </View>
+        )}
         </View>
       </View>
     );
@@ -336,7 +435,7 @@ export default function SpeechScreen() {
 
             <View style={styles.headerRight}>
               <View style={styles.toggleWrap}>
-                <Text style={styles.toggleLabel}>ASL</Text>
+                <Text style={styles.toggleLabel}>ASL Assist</Text>
                 <Switch
                   value={showAslUnderHearing}
                   onValueChange={setShowAslUnderHearing}
@@ -356,7 +455,7 @@ export default function SpeechScreen() {
           {messages.length ? (
             <FlatList
               ref={listRef}
-              data={messages}
+              data={[...messages].sort((a, b) => a.ts - b.ts)}
               keyExtractor={(m) => m.id}
               renderItem={renderItem}
               contentContainerStyle={styles.listContent}
@@ -654,5 +753,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
   },
-  homeCtaText: { color: "white", fontWeight: "900" },
+  videoBtn: {
+    marginTop: 10,
+    alignSelf: "center",
+    padding: 6,
+  },
+  videoPreview: {
+    marginTop: 10,
+    width: 200,
+    height: 150,
+    borderRadius: 10,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  thumbnail: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+
+  playIcon: {
+    opacity: 0.9,
+  },
+
+  homeCtaText: { color: "white", fontWeight: "900" }
 });

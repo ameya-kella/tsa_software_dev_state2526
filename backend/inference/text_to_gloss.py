@@ -6,14 +6,9 @@ from nltk import pos_tag, word_tokenize
 # this file is for converting english text --> asl-styled text
 # ex: "I like to go to parks." --> "ME LIKE GO PARK"
 
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger_eng')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-nltk.download('stopwords')
-
 lemmatizer = WordNetLemmatizer()
 stop_words = set(stopwords.words('english'))
+stop_words.update({"a", "an", "the"})
 
 # mappings for aiding conversion
 PRONOUN_MAP = {
@@ -57,6 +52,15 @@ AUX_MAP = {
     "might": "",
     "must": "",
 }
+
+# ASL grammar usually puts time words first
+TIME_WORDS = {
+    "yesterday", "today", "tomorrow",
+    "now", "later", "tonight",
+    "morning", "afternoon", "evening",
+    "week", "month", "year"
+}
+
 
 # function to map NLTK POS tags to WordNet POS
 def get_wordnet_pos(treebank_tag):
@@ -107,4 +111,14 @@ def english_to_asl_keywords(sentence):
         # uppercase for ASL style
         keywords.append(lemma.upper())
 
-    return " ".join(keywords)
+    time_tokens = []
+    main_tokens = []
+
+    for word in keywords:
+        if word.lower() in TIME_WORDS:
+            time_tokens.append(word.upper())
+        else:
+            main_tokens.append(word)
+
+    return " ".join(time_tokens + main_tokens)
+
