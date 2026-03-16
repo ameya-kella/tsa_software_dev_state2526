@@ -4,8 +4,22 @@ import { Link } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const handleLogout = async () => {
+    router.replace("/login");
+  }
+  const CREDS_KEY = "asl_user_credentials";
+  
+  useEffect(() => {
+    (async () => {
+      const stored = await AsyncStorage.getItem(CREDS_KEY);
+      if (!stored) router.replace("/login");
+    })();
+  }, []);
+
   const [isAutomated, setIsAutomated] = useState(false);
   const toggleSwitch = async () => {
     const newState = !isAutomated;
@@ -142,6 +156,11 @@ export default function HomeScreen() {
               <Text style={styles.footerSub}>
                 When enabled, confirmed text auto-speaks.
               </Text>
+              <TouchableOpacity onPress={handleLogout} style={{ marginTop: 8}}>
+                <Text style={[styles.footerText, { color: "rgba(255,100,100,0.7)" }]}>
+                  Log Out
+                </Text>
+        </TouchableOpacity>
             </View>
 <View style={{ transform: [{ scale: 0.85 }], marginLeft: -6 }}>
 <View style={{ transform: [{ scale: 0.85 }], marginLeft: -6 }}>
