@@ -68,7 +68,7 @@ This GitHub repository only includes changes made for the Texas TSA State compet
 
 If you would like to see our repositories for the different levels, you may do so here:
 * The repository submitted for our regionals competition as an intermediate step can be found here: https://github.com/ameya-kella/tsa_software_dev_regionals2526
-* Additionall, the work we made before regionals can be found here: https://github.com/ameya-kella/tsa_software_dev_2526
+* Additionally, the work we made before regionals can be found here: https://github.com/ameya-kella/tsa_software_dev_2526
 
 #### Google Colab Workspace
 This project's development has the need for intensive operations using libraries such as Tensorflow and PyTorch. However, some of our teammates worked on shared computers which has hardware restrictions such as low RAM and a lack of GPU structures. Additionally, they were unable to commit changes to the GitHub as they could not make push requests from their devices.
