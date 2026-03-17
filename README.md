@@ -26,7 +26,7 @@ This includes all features above, and:
   + We do this by utilizing moviepy to preprocess every video of the same signer. Then, in real-time, we concatenate the video files (each representing one sign/gloss) using ffmpeg to form the full message.
       + Videos are from the WLASL dataset: https://www.kaggle.com/datasets/risangbaskoro/wlasl-processed
 
-////// add info about the login feature here --> then go into how chats are saved ///////
+////// add info about the login feature (not asymmetric encryption but a robust hashing method) here --> then go into how chats are saved ///////
 
 ## Hardware/Software:
 Hardware / Software:
@@ -37,7 +37,7 @@ Software Installed:
 - Windows 11
 - Visual Studio Code
 - Python 3.12.3
-- Libraries/Frameworks: We have installed mediapipe, open-cv, tensorflow, keras, pandas, numpy, sci-kit learn, nltk, pytorch, moviepy, ffmpeg, expo, and react-native
+- Libraries/Frameworks: We have installed mediapipe, open-cv, tensorflow, keras, pandas, numpy, sci-kit learn, nltk, pytorch, moviepy, ffmpeg, expo, sqlalchemy, passlib, pydantic, expo, fastapi, uvicorn, and react-native
 - WebSockets for server
 
 ## Code structure:
