@@ -26,7 +26,6 @@ This includes all features above, and:
   + We do this by utilizing moviepy to preprocess every video of the same signer. Then, in real-time, we concatenate the video files (each representing one sign/gloss) using ffmpeg to form the full message.
       + Videos are from the WLASL dataset: https://www.kaggle.com/datasets/risangbaskoro/wlasl-processed
 
-////// add info about the login feature (not asymmetric encryption but a robust hashing method) here --> then go into how chats are saved ///////
 ### One-Way Hashing
 Additionally, users can save the conversations they have by creating an account. To enable security for the user's username and password, we have employed a one-way hashing system.
 1. The plain-text password is used as the initial raw data for processing.
