@@ -25,7 +25,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 
 const USE_MOCK_TRANSCRIBE = false;
-const STORAGE_KEY = "speech_messages_v1";
+const STORAGE_KEY = "unified_conversation_v1";
 
 const WS_URL = "ws://localhost:8000/ws";
 export const API_BASE = "http://localhost:8000";
@@ -140,31 +140,6 @@ export default function SpeechScreen() {
   useEffect(() => {
     if (!listRef.current) return;
     listRef.current.scrollToEnd({ animated: true });
-  }, [messages]);
-
-  // Persisting messages in convo
-  useFocusEffect(
-    React.useCallback(() => {
-      const loadMessages = async () => {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const savedMsgs: ChatMsg[] = JSON.parse(saved);
-          setMessages(prev => {
-            const merged = [...prev, ...savedMsgs.filter(m => !prev.find(p => p.id === m.id))];
-            merged.sort((a, b) => a.ts - b.ts);
-            return merged;
-
-          });
-        }
-      };
-      loadMessages();
-    }, [])
-  );
-
-
-
-  useEffect(() => {
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
   // converting to ASL-style english

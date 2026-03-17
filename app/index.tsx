@@ -147,6 +147,12 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
           </Link>
+
+          <TouchableOpacity style={styles.card} onPress={() => router.push("/history")}>
+            <Text style={styles.cardTitle}>History</Text>
+            <Text style={styles.cardDesc}>Past Conversations</Text>
+            <Text style={styles.cardFoot}>Saved Locally</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
