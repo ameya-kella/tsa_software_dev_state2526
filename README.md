@@ -54,6 +54,8 @@ Due to the large size of the models, we did not upload them here; however, they 
 * since some teammates were not able to collaborate on github and contribute personally (due to reasons like using shared computers), they sent code to other members. one form of this communication is through this Google Colab: https://colab.research.google.com/drive/1vo6ZUE-q_wBkPd7w1GoT63aWinTPiAA9
 * calendar / project timeline: https://docs.google.com/spreadsheets/d/1gJzG0SG803LZEIrRAKYUECLalSRudhfAjnKcNfPmmAE/edit?usp=sharing
 * we could also add this doc if wanted (esp the notes for how to structure the models):https://docs.google.com/document/d/1z1Fp5Pja9lyfngQQKyaTcJN5SEB8MC9H5KGYyzJfTEI/edit?tab=t.xe9n8yzcevh9
+* TESTING -- i made a new folder in code called "testing_code" -- has evaluation scripts and results for the two models
+  + as for other testing mechanisms, we systematically tested the asl-to-text model using our real-time camera as well as did the same thing for other features (like text-to-speech, text-to-gloss, etc)
 
 ## Usage / Installation:
 To test out our app on your own, install all necessary libraries stated in the "requirements.txt" file.
