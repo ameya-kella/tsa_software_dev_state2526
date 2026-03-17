@@ -46,16 +46,28 @@ The main two folders with our code are "app" and "backend." The "app" folder con
 Due to the large size of the models, we did not upload them here; however, they are available for download at https://drive.google.com/drive/folders/1x0KjHnAD7iHUkfxQgbU40-mMhUUc9zPu?usp=sharing. To view the model architectures and frameworks we used, you can find them inside the "backend" folder.
 
 ## Software Development Process - Important Notes
-///things we could talk about / include (fix wording, organization, etc) 
-* this repository was created after regionals, so it doesnt have our history from before
-* this was the repository that we submitted for regionals (as an intermediate step for our progress): https://github.com/ameya-kella/tsa_software_dev_regionals2526
-* this was the repository we used before regionals as we worked on it:https://github.com/ameya-kella/tsa_software_dev_2526
-* we used diff repositories for diff levels in the competition because when we look back at this project later, we want to be able to know what features were implemented by what levels in the competition (idk if this makes sense)
-* since some teammates were not able to collaborate on github and contribute personally (due to reasons like using shared computers), they sent code to other members. one form of this communication is through this Google Colab: https://colab.research.google.com/drive/1vo6ZUE-q_wBkPd7w1GoT63aWinTPiAA9
-* calendar / project timeline: https://docs.google.com/spreadsheets/d/1gJzG0SG803LZEIrRAKYUECLalSRudhfAjnKcNfPmmAE/edit?usp=sharing
-* we could also add this doc if wanted (esp the notes for how to structure the models):https://docs.google.com/document/d/1z1Fp5Pja9lyfngQQKyaTcJN5SEB8MC9H5KGYyzJfTEI/edit?tab=t.xe9n8yzcevh9
-* TESTING -- i made a new folder in code called "testing_code" -- has evaluation scripts and results for the two models
-  + as for other testing mechanisms, we systematically tested the asl-to-text model using our real-time camera as well as did the same thing for other features (like text-to-speech, text-to-gloss, etc)
+### Project Timeline
+Going into this project, we wanted to have a clear idea of the features for this application as well as a method to hold each other accountable. So, at the beginning of our development, we created this calendar: https://docs.google.com/spreadsheets/d/1gJzG0SG803LZEIrRAKYUECLalSRudhfAjnKcNfPmmAE/edit?usp=sharing
+
+Additionally, our team brainstormed different ideas and mapped out the scope of the project at these early stages as well. These ideas are located at the following document (Tab 1 contains our brainstorming for app ideas as well as how to implement them while Tab 2 contains the notes for how to structure the models): https://docs.google.com/document/d/1z1Fp5Pja9lyfngQQKyaTcJN5SEB8MC9H5KGYyzJfTEI/edit?tab=t.xe9n8yzcevh9
+
+### Project Development
+#### Repositories
+This GitHub repository only includes changes made for the Texas TSA State competition and does not have changes from before. As a team, we decided to have different repositories for each level of the competition as well as for major milestones. This allows for easier reflection while also serving as a good documentation method.
+
+If you would like to see our repositories for the different levels, you may do so here:
+* The repository submitted for our regionals competition as an intermediate step can be found here: https://github.com/ameya-kella/tsa_software_dev_regionals2526
+* Additionall, the work we made before regionals can be found here: https://github.com/ameya-kella/tsa_software_dev_2526
+
+#### Google Colab Workspace
+This project's development has the need for intensive operations using libraries such as Tensorflow and PyTorch. However, some of our teammates worked on shared computers which has hardware restrictions such as low RAM and a lack of GPU structures. Additionally, they were unable to commit changes to the GitHub as they could not make push requests from their devices.
+
+Google Colab's services offered a solution for our team. The workspace provides access to free GPUs and TPUs requiring only a stable internet connection. As such, these teammates were able to collaborate using this workspace. Then, other teammates were able to implement their changes which included some of the models, e.g. ASL Gloss → English Text, English Text → ASL Gloss, and English Text → Speech: https://colab.research.google.com/drive/1vo6ZUE-q_wBkPd7w1GoT63aWinTPiAA9
+
+### Project Testing 
+Once we created a minimum viable product (MVP) as well as we continued to develop the application, we frequently tested our models to ensure accuracy and limit bias. You can find our testing documentation at the folder called "testing_code" which contains evaluation scripts as well as results for the two models employed.
+
+Along with this, we systematically tested our ASL → Text model using our camera as well as doing the same for other features (Text → Speech, Text → Gloss, etc.) to ensure the user experience worked properly.
 
 ## Usage / Installation:
 To test out our app on your own, install all necessary libraries stated in the "requirements.txt" file.
