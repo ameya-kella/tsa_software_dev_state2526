@@ -51,6 +51,7 @@ Due to the large size of the models, we did not upload them here; however, they 
 * we used diff repositories for diff levels in the competition because when we look back at this project later, we want to be able to know what features were implemented by what levels in the competition (idk if this makes sense)
 * since some teammates were not able to collaborate on github and contribute personally (due to reasons like using shared computers), they sent code to other members. one form of this communication is through this Google Colab: https://colab.research.google.com/drive/1vo6ZUE-q_wBkPd7w1GoT63aWinTPiAA9
 * calendar / project timeline: https://docs.google.com/spreadsheets/d/1gJzG0SG803LZEIrRAKYUECLalSRudhfAjnKcNfPmmAE/edit?usp=sharing
+* we could also add this doc if wanted (esp the notes for how to structure the models):https://docs.google.com/document/d/1z1Fp5Pja9lyfngQQKyaTcJN5SEB8MC9H5KGYyzJfTEI/edit?tab=t.xe9n8yzcevh9
 
 ## Usage / Installation:
 To test out our app on your own, install all necessary libraries stated in the "requirements.txt" file.
