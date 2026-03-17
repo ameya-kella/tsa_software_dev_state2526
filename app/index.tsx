@@ -9,8 +9,9 @@ import { useRouter } from "expo-router";
 export default function HomeScreen() {
   const router = useRouter();
   const handleLogout = async () => {
+    await AsyncStorage.removeItem("asl_user_credentials");
     router.replace("/login");
-  }
+  };
   const CREDS_KEY = "asl_user_credentials";
   
   useEffect(() => {
