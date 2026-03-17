@@ -1,11 +1,10 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, JSONResponse
 import hashlib
 from fastapi import Response, Request
 import math
 import re
-
 import numpy as np
 import uuid
 import subprocess
@@ -14,19 +13,22 @@ import os
 import logging
 import whisper
 import shutil
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.orm import sessionmaker, Session, Mapped, mapped_column
+from passlib.context import CryptContext
+from pydantic import BaseModel
+import nltk
 
-## CHANGE THESE FROM "SCRIPTS" TO "INFERENCE" ****************************
-from backend.scripts.predictor import LiveASLPredictor
-from backend.scripts.sentence import generate_sentence_from_words
+
+## change as needed for mock tests **
+from backend.inference.predictor import LiveASLPredictor
+from backend.inference.sentence import generate_sentence_from_words
 
 from backend.inference.config import TFLITE_MODEL_PATH, ORD2SIGN
 from backend.inference.text_to_gloss import english_to_asl_keywords
 
-from pydantic import BaseModel
 
-import nltk
-
-# Setup
+# setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("asl-backend")
 
@@ -34,13 +36,13 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # lock this down in prod
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Models
+# models
 whisper_model = whisper.load_model("base")
 predictor = LiveASLPredictor(TFLITE_MODEL_PATH, ORD2SIGN)
 from pathlib import Path
@@ -61,7 +63,7 @@ def download_nltk():
     nltk.download('stopwords')
 
 
-# Helper for words --> sentence model
+# helper for words --> sentence model
 def append_word(words: list[str], sign: str, confidence: float | None) -> bool:
     if confidence is None:
         return False
@@ -72,9 +74,74 @@ def append_word(words: list[str], sign: str, confidence: float | None) -> bool:
         return True
     return False
 
-# Helper for asl-style english
+# helper for asl-style english
 class TextInput(BaseModel):
     text: str
+
+# setting up database for user login data
+SQLALCHEMY_DATABASE_URL = "sqlite:///./users_data.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# password hashing
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+Base = declarative_base()
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password_hash = Column(String)
+
+class UserInDB(User):
+    password_hash: Mapped[str] = mapped_column(String, use_existing_column=True)
+
+# pydantic models
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_password_hash(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+# register user (creating new account)
+@app.post("/register")
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    # make sure username does not already exist in database
+    db_user = db.query(User).filter(User.username == user.username).first()
+    
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    db_user = User(username=user.username, password_hash=get_password_hash(user.password))
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    return {"status": "success", "message": "User registered successfully"}
+
+# login the user (already has account)
+@app.post("/login")
+def login_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.username == user.username).first()
+    
+    if db_user is None or not verify_password(user.password, db_user.password_hash):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    return {"status": "success", "message": "Login successful"}
 
 # WebSocket endpoint
 @app.websocket("/ws")
@@ -188,6 +255,7 @@ async def convert_to_asl_style(input: TextInput):
         logger.exception("ASL conversion error")
         return {"error": str(e)}
 
+# concatenate individual sign clips to create non deaf user's message
 @app.post("/generate_asl_video")
 async def generate_asl_video(data: dict):
     try:
@@ -199,11 +267,11 @@ async def generate_asl_video(data: dict):
         video_id = hashlib.md5(gloss.encode()).hexdigest()
         output_path = os.path.join(VIDEO_CACHE_DIR, f"{video_id}.mp4")
 
-        # Return cached video if it exists
+        # return cached video if it exists
         if os.path.exists(output_path):
             return {"video_url": f"/video/{video_id}"}
 
-        # Collect preprocessed clip paths
+        # collect preprocessed clip paths
         clip_paths = []
         for word in words:
             clip = SIGN_VIDEO_DIR / f"{word.lower()}_processed.mp4"
@@ -213,17 +281,17 @@ async def generate_asl_video(data: dict):
         if not clip_paths:
             return {"error": "No matching sign clips"}
 
-        # If only one clip, just copy it
+        # if only one clip, just copy it
         if len(clip_paths) == 1:
             shutil.copy(clip_paths[0], output_path)
         else:
-            # Create concat list file for ffmpeg
+            # create concat list file for ffmpeg
             concat_file = os.path.join(VIDEO_CACHE_DIR, f"{video_id}.txt")
             with open(concat_file, "w") as f:
                 for clip in clip_paths:
                     f.write(f"file '{os.path.abspath(clip)}'\n")
 
-            # Merge clips using concat demuxer (fast, no re-encoding)
+            # merge clips using concat demuxer
             subprocess.run([
                 "ffmpeg", "-y", "-f", "concat", "-safe", "0",
                 "-i", concat_file, "-c", "copy", output_path
@@ -254,7 +322,7 @@ def get_video(video_id: str, request: Request):
             byte1 = int(g[0])
             if g[1]:
                 byte2 = int(g[1])
-        chunk_size = 1024 * 1024  # 1MB
+        chunk_size = 1024 * 1024
         byte2 = byte2 or min(byte1 + chunk_size, file_size - 1)
         length = byte2 - byte1 + 1
         with open(path, "rb") as f:

@@ -5,7 +5,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import CryptoJS from "crypto-js";
 
 const CREDS_KEY = "asl_user_credentials";
 
@@ -14,6 +13,7 @@ export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async () => {
     if (!username.trim() || !password.trim()) {
@@ -21,76 +21,82 @@ export default function LoginScreen() {
       return;
     }
 
-    const hashed = CryptoJS.SHA256(password).toString();
-    const stored = await AsyncStorage.getItem(CREDS_KEY);
+    try {
+      const endpoint = isSignUp ? "register" : "login";
 
-    if (isSignUp) {
-      if (stored) {
-        Alert.alert("Error", "An account already exists on this device.");
-        return;
-      }
-      await AsyncStorage.setItem(
-        CREDS_KEY,
-        JSON.stringify({ username: username.trim(), password: hashed })
-      );
-      Alert.alert("Success", "Account created!", [
-        { text: "OK", onPress: () => router.replace("/") },
-      ]);
-    } else {
-      if (!stored) {
-        Alert.alert("No account found", "Please sign up first.");
-        return;
-      }
-      const creds = JSON.parse(stored);
-      if (creds.username === username.trim() && creds.password === hashed) {
+      const response = await fetch(`http://localhost:8000/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await AsyncStorage.setItem(
+          CREDS_KEY,
+          JSON.stringify({ username: username.trim() })
+        );
+
         router.replace("/");
       } else {
-        Alert.alert("Error", "Incorrect username or password.");
+        if (isSignUp) {
+          setErrorMsg(data.detail || "Username already exists");
+        } else {
+          console.log("SHOWING ALERT");
+          setErrorMsg("Invalid username or password");
+        }
       }
+    } catch (error) {
+      console.error("Error during authentication:", error);
+      Alert.alert("Error", "Cannot connect to server.");
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <Text style={styles.title}>Welcome</Text>
-      <Text style={styles.subtitle}>
-        {isSignUp ? "Create your account" : "Sign in to continue"}
-      </Text>
+      <Text style={styles.subtitle}>{isSignUp ? "Create your account" : "Sign in to continue"}</Text>
 
       <View style={styles.form}>
         <Text style={styles.label}>Username</Text>
         <TextInput
           style={styles.input}
           value={username}
-          onChangeText={setUsername}
+          onChangeText={(text) => {
+            setUsername(text);
+            setErrorMsg("");
+          }}
           placeholder="Enter username"
           placeholderTextColor="rgba(255,255,255,0.3)"
           autoCapitalize="none"
         />
-
         <Text style={[styles.label, { marginTop: 14 }]}>Password</Text>
         <TextInput
           style={styles.input}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            setErrorMsg("");
+          }}
           placeholder="Enter password"
           placeholderTextColor="rgba(255,255,255,0.3)"
           secureTextEntry
         />
-
-        <TouchableOpacity style={styles.primaryBtn} onPress={handleSubmit}>
-          <Text style={styles.primaryBtnText}>
-            {isSignUp ? "Create Account" : "Sign In"}
+        {errorMsg ? (
+          <Text style={{ color: "#ef4444", marginTop: 10, fontWeight: "700" }}>
+            {errorMsg}
           </Text>
+        ) : null}
+        <TouchableOpacity style={styles.primaryBtn} onPress={handleSubmit}>
+          <Text style={styles.primaryBtnText}>{isSignUp ? "Create Account" : "Sign In"}</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.toggleBtn}
-          onPress={() => setIsSignUp((v) => !v)}
-        >
+        <TouchableOpacity style={styles.toggleBtn} onPress={() => setIsSignUp((v) => !v)}>
           <Text style={styles.toggleText}>
             {isSignUp ? "Already have an account? Sign In" : "No account? Sign Up"}
           </Text>
@@ -102,8 +108,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, backgroundColor: "#0b1220",
-    justifyContent: "center", padding: 24,
+    flex: 1, backgroundColor: "#0b1220", justifyContent: "center", padding: 24,
   },
   title: { color: "white", fontSize: 32, fontWeight: "900", textAlign: "center" },
   subtitle: {

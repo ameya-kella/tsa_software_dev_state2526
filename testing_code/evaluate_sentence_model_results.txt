@@ -1,0 +1,257 @@
+ROUGE Scores:
+rouge1: 0.9960
+rouge2: 0.9898
+rougeL: 0.9960
+rougeLsum: 0.9960
+
+Sample Predictions:
+
+Gloss: X-I BE DESC-NOT DESC-ONLY ONE WHO THINK THAT SOMETHING BE DESC-WRONG .
+
+True: i am not the only one who thinks that something is wrong .
+Pred: i am not the only one who thinks that something is wrong .
+
+Gloss: IN GERMANY , LABOR COST HAVE BE FALL SINCE DESC-SAME PERIOD .
+
+True: in germany , labour costs have been falling since the same period .
+Pred: in germany , labour costs have been falling since the same period .
+
+Gloss: X-I DO DESC-STILL HAVE ONE SPECIFIC CONCERN .
+
+True: i do still have one specific concern .
+Pred: i do still have one specific concern .
+
+Gloss: X-WE BE DESC-DIRECTLY ELECT .
+
+True: we are directly elected .
+Pred: we are directly elected .
+
+Gloss: X-WE BELIEVE IN DESC-STRONG TRANSATLANTIC RELATIONSHIP BASE ON X-WE DESC-COMMON VALUE DEMOCRACY AND DESC-FREE MARKET ECONOMY .
+
+True: we believe in a strong transatlantic relationship based on our common values of democracy and the free market economy .
+Pred: we believe in a strong transatlantic relationship based on our common values of democracy and the free market economy .
+
+Gloss: MOTION FOR RESOLUTION
+
+True: motion for a resolution.
+Pred: motion for a resolution.
+
+Gloss: WITH THIS IN MIND , X-I VOTE FOR PROPOSAL ON DESC-MUTUAL ASSISTANCE IN THIS AREA .
+
+True: with this in mind , i voted for the proposal on mutual assistance in this area .
+Pred: with this in mind , i voted for the proposal on mutual assistance in this area .
+
+Gloss: HOW CAN X-WE , IN THIS HOUSE , DESC-LEGITIMATELY CALL FOR MORE AMBITION WITH REGARD TO ENVIRONMENT ?
+
+True: how can we , in this house , legitimately call for more ambition with regard to the environment ?.
+Pred: how can we , in this house , legitimately call for more ambition with regard to the environment ?.
+
+Gloss: DESC-MANY X-WE COLLABORATE ON DESC-SMALL BUSINESS ACT .
+
+True: many of us collaborated on the small business act .
+Pred: many of us collaborated on the small business act .
+
+Gloss: ADJOURNMENT SESSION
+
+True: adjournment of the session.
+Pred: adjournment of the session.
+
+Gloss: X-I WILL BE DESC-REALLY BRIEF .
+
+True: i will be really brief .
+Pred: i will be really brief .
+
+Gloss: SV MADAM PRESIDENT , DESC-MANY , LIKE X-I , BE CONCERN ABOUT GROW ANTI SEMITISM IN EUROPE .
+
+True: sv madam president , many , like me , are concerned about the growing anti semitism in europe .
+Pred: sv madam president , many , like me , are concerned about the growing anti semitism in europe .
+
+Gloss: EUROPE X-POSS CITIZEN CAN DESC-NOT BEAR COST DESC-ALONE FOR MODERNIZE ENERGY SYSTEM .
+
+True: europe's citizens cannot bear the costs alone for modernising energy systems .
+Pred: europe's citizens cannot bear the costs alone for modernising energy systems .
+
+Gloss: X-WE MUST , COURSE , FIGHT AGAINST DESC-ILLEGAL IMMIGRATION AND TRAFFICKING IN DESC-HUMAN BE .
+
+True: we must , of course , fight against illegal immigration and trafficking in human beings .
+Pred: we must , of course , fight against illegal immigration and trafficking in human beings .
+
+Gloss: X-I DESC-FIRMLY BELIEVE THAT CITIZEN DESC-VARIOUS MEMBER STATE WANT FREEDOM , DEMOCRACY AND DESC-ECONOMIC PROSPERITY .
+
+True: i firmly believe that the citizens of the various member states want freedom , democracy and economic prosperity .
+Pred: i firmly believe that the citizens of the various member states want freedom , democracy and economic prosperity .
+
+Gloss: X-IT BE DESC-GOOD THAT X-WE BE DESC-ALSO CONCLUDE DESC-BILATERAL AGREEMENT .
+
+True: it is good that we are also concluding bilateral agreements .
+Pred: it is good that we are also concluding bilateral agreements .
+
+Gloss: SIT BE DESC-CLOSE AT 11.55 DESC-P.M.
+
+True: the sitting was closed at 11.55 p.m.
+Pred: the sitting was closed at 11.55 p.m.
+
+Gloss: EUROPEAN PUBLIC EXPECT THIS FROM X-WE .
+
+True: the european public expects this from us .
+Pred: the european public expects this from us .
+
+Gloss: DESC-PARTICULARLY ENTERPRISE AT FOREFRONT DESC-SUCH DEVELOPMENT MUST BE ENCOURAGE AND REWARD DESC-ACCORDINGLY .
+
+True: particularly enterprises at the forefront of such development must be encouraged and rewarded accordingly .
+Pred: particularly enterprises at the forefront of such development must be encouraged and rewarded accordingly .
+
+Gloss: DESC-OPEN RECRUITMENT AND PORTABILITY GRANT ,
+
+True: open recruitment and portability of grants ,.
+Pred: open recruitment and portabilityability of grants ,.
+
+Gloss: IN THIS AREA , DESC-RE CAN BE NO QUESTION DESC-SMALL OR DESC-LARGE RISK .
+
+True: in this area , there can be no question of small or large risk .
+Pred: in this area , there can be no question of small or large risks .
+
+Gloss: SUPPORT FOR DEVELOPMENT DESC-EDUCATIONAL SYSTEM , WITH ASSISTANCE DESC-INTERDISCIPLINARY INVESTMENT , BE DESC-ALSO DESC-STRONGLY DESC-JUSTIFIED .
+
+True: support for the development of educational systems , with the assistance of interdisciplinary investment , is also strongly justified .
+Pred: support for the development of educational systems , with the assistance of interdisciplinary investment , is also strongly justified .
+
+Gloss: DESC-ECONOMIC PARTNERSHIP AGREEMENT BETWEEN EC AND CARIFORUM
+
+True: economic partnership agreement between the ec and cariforum.
+Pred: economic partnership agreement between the ec and cariforum.
+
+Gloss: X-IT BE DESC-REFORE WITH TWINGE SORROW THAT X-I DECLARE SESSION EUROPEAN PARLIAMENT ADJOURN .
+
+True: it is therefore with a twinge of sorrow that i declare the session of the european parliament adjourned .
+Pred: it is therefore with a twinge of sorrow that i declare the session of the european parliament adjourned .
+
+Gloss: WHY BE DESC-SO DESC-AFRAID GROWTH ?
+
+True: why be so afraid of growth ?.
+Pred: why be so afraid of growth ?.
+
+Gloss: DESC-SO LET X-WE DEAL WITH DESC-REAL WORLD .
+
+True: so let us deal with the real world .
+Pred: so let us deal with the real world .
+
+Gloss: THIS AGENDA BE DESC-PARTICULARLY FOCUS ON THREE SPECIFIC AREA CURRICULUM , GOVERNANCE AND FUNDING .
+
+True: this agenda is particularly focused on the three specific areas of curricula , governance and funding .
+Pred: this agenda is particularly focused on three specific areas of curricula , governance and funding .
+
+Gloss: ISSUE DOHA ROUND BE DESC-NOT BE TALK ABOUT AMONGST PEOPLE EUROPE .
+
+True: the issue of the doha round is not being talked about amongst the people of europe .
+Pred: the issue of the doha round is not being talked about amongst the people of europe .
+
+Gloss: TWENTY ONE MEMBER STATE BE MOBILISE TO RESPOND .
+
+True: twenty one member states were mobilised to respond .
+Pred: twenty one member states were mobilised to respond .
+
+Gloss: ENERGY SECURITY DESC-ALSO DEPEND ON EU X-POSS NEIGHBOR .
+
+True: energy security also depends on the eu's neighbours .
+Pred: energy security also depends on the eu's neighbours .
+
+Gloss: DESC-SO THIS BE SITUATION WITH REGARD TO COUNTERFEITING EURO BANKNOTE AND COIN .
+
+True: so this is the situation with regard to the counterfeiting of euro banknotes and coins .
+Pred: so this is the situation with regard to the counterfeiting of euro banknotes and coins .
+
+Gloss: HU MULTITUDE PROPOSE AMENDMENT INCLUDE TEXTUAL AMENDMENT WHICH HIT NAIL ON HEAD .
+
+True: hu the multitude of proposed amendments included a textual amendment which hit the nail on the head .
+Pred: hu the multitude of proposed amendments included a textual amendment which hit the nail on the head .
+
+Gloss: X-IT RECEIVE DESC-BROAD SUPPORT FROM COUNCIL TRANSPORT MINISTER AT X-ITS DESC-EXTRAORDINARY MEETING 4 MAY 20 X-I BE DESC-HAPPY TO REPORT DESC-FIRST STEP TAKE AS CONSEQUENCE .
+
+True: it received broad support from the council of transport ministers at its extraordinary meeting of 4 may 20i am happy to report the first steps taken as a consequence .
+Pred: it received broad support from the council of transport ministers at its extraordinary meeting of 4 may 20i am happy to report the first steps taken as a consequence .
+
+Gloss: NL X-I CAN BE DESC-VERY BRIEF .
+
+True: rapporteur . nl i can be very brief .
+Pred: rapporteur . nl i can be very brief .
+
+Gloss: NOEL BELIEVE THIS BE REASON FOR CLOSURE OPEL ANTWERP .
+
+True: noels believes this is the reason for the closure of opel antwerp .
+Pred: noels believes this is the reason for the closure of opel antwerp .
+
+Gloss: X-WE WOULD DESC-REFORE HAVE TO REVISE TREATY .
+
+True: we would therefore have to revise the treaty .
+Pred: we would therefore have to revise the treaty .
+
+Gloss: THIS BE TIME FOR CELEBRATION AND , AS X-I SAY , X-I BE DESC-VERY MOVE .
+
+True: this is a time for celebration and , as i said , i am very moved .
+Pred: this is a time for celebration and , as i said , i am very moved .
+
+Gloss: 2008 DISCHARGE EU DESC-GENERAL BUDGET , COMMITTEE REGION
+
+True: 2008 discharge eu general budget , committee of the regions.
+Pred: 2008 discharge eu general budget , committee of the regions.
+
+Gloss: EUROPEAN COUNCIL MUST MAKE DESC-NECESSARY PREPARATION , BUT SHOULD DESC-NOT JUMP TO ANY DESC-HASTY CONCLUSION .
+
+True: the european council must make the necessary preparations , but should not jump to any hasty conclusions .
+Pred: the european council must make the necessary preparations , but should not jump to any hasty conclusions .
+
+Gloss: DESC-RE BE CAUSE FOR THAT DESC-NOW .
+
+True: there is cause for that now .
+Pred: there is cause for that now .
+
+Gloss: X-I DO KNOW , DESC-HOWEVER , THAT THIS MISSION WILL REQUIRE THOSE CONDUCT X-IT TO BE DESC-COMPLETELY DESC-IMPARTIAL .
+
+True: i do know , however , that this mission will require those conducting it to be completely impartial .
+Pred: i do know , however , that this mission will require those conducting it to be completely impartial .
+
+Gloss: X-I WOULD LIKE TO MAKE DESC-FEW DESC-GENERAL AND DESC-FEW SPECIFIC REMARK REGARD PLAN .
+
+True: i would like to make a few general and a few specific remarks regarding the plan .
+Pred: i would like to make a few general and few specific remarks regarding the plan .
+
+Gloss: TODAY X-POSS TAJIKISTAN BE CONFRONT , AS HAVE BE SAY DESC-ALREADY , BY DESC-MAJOR DESC-ECONOMIC AND DESC-SOCIAL CHALLENGE .
+
+True: today's tajikistan is confronted , as has been said already , by major economic and social challenges .
+Pred: today's tajikistan is confronted , as has been said already , by major economic and social challenges .
+
+Gloss: X-I BELIEVE THAT MINORITY POLICY IN PEOPLE X-POSS REPUBLIC CHINA HAVE FAIL .
+
+True: i believe that the minorities policy in the people's republic of china has failed .
+Pred: i believe that the minorities policy in the people's republic of china has failed .
+
+Gloss: THIS BE PART X-WE DIALOGUE WITH DESC-REGIONAL AND POLICY AUTHORITY .
+
+True: this is part of our dialogue with the regional and policy authorities .
+Pred: this is part of our dialogue with the regional and policy authorities .
+
+Gloss: THIS TURN BURDEN PROOF DESC-OR WAY ROUND , AND THAT , DESC-FRANKLY , BE DESC-UNACCEPTABLE .
+
+True: this turns the burden of proof the other way round , and that , frankly , is unacceptable .
+Pred: this turns the burden of proof the other way round , and that , frankly , is unacceptable .
+
+Gloss: DESC-RE BE NONE REFLECT IN DESC-CURRENT PROPOSAL .
+
+True: there is none reflected in the current proposal .
+Pred: there is none reflected in the current proposal .
+
+Gloss: FOR THIS REASON , ALL REPROACH BE DESC-INVALID .
+
+True: for this reason , all reproaches are invalid .
+Pred: for this reason , all reproaches are invalid .
+
+Gloss: EUROPEAN UNION BE DESC-MAIN CONTRIBUTOR DESC-HUMANITARIAN AID TO ZIMBABWE .
+
+True: the european union is the main contributor of humanitarian aid to zimbabwe .
+Pred: the european union is the main contributor of humanitarian aid to zimbabwe .
+
+Gloss: DESC-OR INDUSTRY BE AFFECT , THOUGH DESC-RE BE DESC-ALSO INDUSTRY BENEFIT FROM SITUATION .
+
+True: other industries are affected , though there are also industries benefiting from the situation .
+Pred: other industries are affected , though there are also industries benefiting from the situation .

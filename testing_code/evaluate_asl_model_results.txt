@@ -1,0 +1,145 @@
+
+Inputs: [{'name': 'serving_default_non_empty_frame_idxs:0', 'index': 0, 'shape': array([ 1, 64], dtype=int32), 'shape_signature': array([-1, 64], dtype=int32), 'dtype': <class 'numpy.float32'>, 'quantization': (0.0, 0), 'quantization_parameters': {'scales': array([], dtype=float32), 'zero_points': array([], dtype=int32), 'quantized_dimension': 0}, 'sparsity_parameters': {}}, {'name': 'serving_default_frames:0', 'index': 1, 'shape': array([ 1, 64, 87,  3], dtype=int32), 'shape_signature': array([-1, 64, 87,  3], dtype=int32), 'dtype': <class 'numpy.float32'>, 'quantization': (0.0, 0), 'quantization_parameters': {'scales': array([], dtype=float32), 'zero_points': array([], dtype=int32), 'quantized_dimension': 0}, 'sparsity_parameters': {}}]
+
+Outputs: [{'name': 'StatefulPartitionedCall_1:0', 'index': 382, 'shape': array([ 1, 38], dtype=int32), 'shape_signature': array([-1, 38], dtype=int32), 'dtype': <class 'numpy.float32'>, 'quantization': (0.0, 0), 'quantization_parameters': {'scales': array([], dtype=float32), 'zero_points': array([], dtype=int32), 'quantized_dimension': 0}, 'sparsity_parameters': {}}]
+
+
+Accuracy: 0.9412
+
+In-depth Evaluation (per sample):
+True: T, Pred: T, Conf: 0.87
+True: friend, Pred: friend, Conf: 0.97
+True: restaurant, Pred: restaurant, Conf: 0.84
+True: tomorrow, Pred: tomorrow, Conf: 1.00
+True: S, Pred: T, Conf: 0.51
+True: tomorrow, Pred: tomorrow, Conf: 1.00
+True: how, Pred: how, Conf: 1.00
+True: tomorrow, Pred: tomorrow, Conf: 1.00
+True: A, Pred: A, Conf: 0.55
+True: bathroom, Pred: bathroom, Conf: 1.00
+True: like, Pred: like, Conf: 1.00
+True: can, Pred: can, Conf: 1.00
+True: can't, Pred: can't, Conf: 0.98
+True: my, Pred: my, Conf: 1.00
+True: want, Pred: want, Conf: 0.86
+True: no, Pred: no, Conf: 0.99
+True: please, Pred: please, Conf: 1.00
+True: in, Pred: in, Conf: 0.99
+True: today, Pred: today, Conf: 1.00
+True: yes, Pred: yes, Conf: 0.36
+True: go, Pred: go, Conf: 1.00
+True: want, Pred: want, Conf: 0.77
+True: i love you, Pred: i love you, Conf: 0.98
+True: thank you, Pred: thank you, Conf: 0.99
+True: boat, Pred: boat, Conf: 1.00
+True: friend, Pred: friend, Conf: 1.00
+True: A, Pred: A, Conf: 1.00
+True: friend, Pred: friend, Conf: 0.57
+True: A, Pred: A, Conf: 1.00
+True: goodbye, Pred: goodbye, Conf: 0.96
+True: yesterday, Pred: yesterday, Conf: 0.96
+True: where, Pred: where, Conf: 0.95
+True: hello, Pred: hello, Conf: 1.00
+True: goodbye, Pred: goodbye, Conf: 1.00
+True: can't, Pred: can't, Conf: 0.97
+True: i love you, Pred: i love you, Conf: 1.00
+True: today, Pred: today, Conf: 1.00
+True: eat, Pred: eat, Conf: 0.99
+True: come, Pred: come, Conf: 1.00
+True: please, Pred: please, Conf: 1.00
+True: judge, Pred: judge, Conf: 0.99
+True: your, Pred: your, Conf: 1.00
+True: yesterday, Pred: yesterday, Conf: 0.99
+True: you, Pred: you, Conf: 0.89
+True: yes, Pred: yes, Conf: 1.00
+True: come, Pred: come, Conf: 0.96
+True: you, Pred: judge, Conf: 0.33
+True: name, Pred: name, Conf: 1.00
+True: walk, Pred: walk, Conf: 0.65
+True: goodbye, Pred: goodbye, Conf: 1.00
+True: how, Pred: how, Conf: 0.99
+True: name, Pred: name, Conf: 1.00
+True: please, Pred: please, Conf: 1.00
+True: me, Pred: me, Conf: 1.00
+True: my, Pred: my, Conf: 0.96
+True: can't, Pred: can't, Conf: 1.00
+True: S, Pred: S, Conf: 0.91
+True: in, Pred: in, Conf: 0.74
+True: no, Pred: no, Conf: 1.00
+True: me, Pred: me, Conf: 0.98
+True: want, Pred: want, Conf: 0.96
+True: judge, Pred: judge, Conf: 0.94
+True: their, Pred: their, Conf: 1.00
+True: shirt, Pred: shirt, Conf: 1.00
+True: me, Pred: me, Conf: 0.64
+True: no, Pred: no, Conf: 1.00
+True: hello, Pred: hello, Conf: 1.00
+True: where, Pred: their, Conf: 0.93
+True: good, Pred: good, Conf: 0.84
+True: my, Pred: my, Conf: 0.99
+True: their, Pred: their, Conf: 1.00
+True: hello, Pred: hello, Conf: 1.00
+True: you, Pred: you, Conf: 0.99
+True: restaurant, Pred: eat, Conf: 0.94
+True: goodbye, Pred: goodbye, Conf: 1.00
+True: eat, Pred: eat, Conf: 1.00
+True: can, Pred: can, Conf: 1.00
+True: in, Pred: in, Conf: 1.00
+True: yesterday, Pred: yesterday, Conf: 0.97
+True: where, Pred: where, Conf: 0.96
+True: i love you, Pred: i love you, Conf: 0.51
+True: boat, Pred: boat, Conf: 0.91
+True: good, Pred: good, Conf: 0.97
+True: your, Pred: your, Conf: 1.00
+True: bathroom, Pred: bathroom, Conf: 0.95
+True: their, Pred: their, Conf: 1.00
+True: T, Pred: T, Conf: 0.97
+True: today, Pred: today, Conf: 1.00
+True: want, Pred: want, Conf: 0.89
+True: bathroom, Pred: bathroom, Conf: 0.97
+True: eat, Pred: eat, Conf: 1.00
+True: how, Pred: how, Conf: 1.00
+True: bathroom, Pred: bathroom, Conf: 1.00
+True: A, Pred: A, Conf: 1.00
+True: shirt, Pred: shirt, Conf: 1.00
+True: T, Pred: T, Conf: 0.51
+True: tomorrow, Pred: tomorrow, Conf: 0.96
+True: your, Pred: your, Conf: 1.00
+True: yes, Pred: yes, Conf: 0.81
+True: judge, Pred: judge, Conf: 0.61
+True: restaurant, Pred: eat, Conf: 0.67
+True: good, Pred: good, Conf: 0.64
+True: name, Pred: name, Conf: 0.99
+True: like, Pred: like, Conf: 1.00
+True: go, Pred: go, Conf: 1.00
+True: house, Pred: house, Conf: 1.00
+True: like, Pred: like, Conf: 1.00
+True: house, Pred: thank you, Conf: 0.69
+True: name, Pred: name, Conf: 1.00
+True: like, Pred: like, Conf: 1.00
+True: me, Pred: me, Conf: 1.00
+True: can't, Pred: can't, Conf: 0.93
+True: today, Pred: today, Conf: 1.00
+True: yes, Pred: A, Conf: 0.61
+True: thank you, Pred: thank you, Conf: 1.00
+True: no, Pred: no, Conf: 0.99
+True: shirt, Pred: shirt, Conf: 1.00
+True: walk, Pred: walk, Conf: 1.00
+True: yesterday, Pred: yesterday, Conf: 0.99
+True: walk, Pred: walk, Conf: 0.96
+True: go, Pred: go, Conf: 0.97
+True: T, Pred: T, Conf: 0.82
+True: judge, Pred: judge, Conf: 0.82
+True: S, Pred: S, Conf: 0.69
+True: thank you, Pred: thank you, Conf: 0.97
+True: where, Pred: where, Conf: 0.92
+True: shirt, Pred: shirt, Conf: 1.00
+True: you, Pred: you, Conf: 0.98
+True: S, Pred: T, Conf: 0.54
+True: house, Pred: house, Conf: 1.00
+True: come, Pred: come, Conf: 1.00
+True: walk, Pred: walk, Conf: 1.00
+True: in, Pred: in, Conf: 0.96
+True: can, Pred: can, Conf: 1.00
+True: your, Pred: your, Conf: 1.00
+True: boat, Pred: boat, Conf: 0.98
