@@ -27,11 +27,23 @@ This includes all features above, and:
       + Videos are from the WLASL dataset: https://www.kaggle.com/datasets/risangbaskoro/wlasl-processed
 
 ////// add info about the login feature (not asymmetric encryption but a robust hashing method) here --> then go into how chats are saved ///////
+### One-Way Hashing
+Additionally, users can save the conversations they have by creating an account. To enable security for the user's username and password, we have employed a one-way hashing system.
+1. The plain-text password is used as the initial raw data for processing.
+2. A random string is generated and added to the password to ensure identical passwords have different hashes.
+3. Functions like SHA-256 or PBKDF2 are chosen within CryptoJS.
+4. Logical operations that scramble the input data into a non-linear state.
+5. Multiple rounds of mixing are done to ensure the output cannot be reversed.
+6. A fixed-length hexadecimal string is produced to be stored in the database in place of the actual password.
+
+Once the user has logged in, the conversations they have are also stored in the database to enable revisiting.
+
 
 ## Hardware/Software:
 Hardware / Software:
 Brand/Model of Computer: Acer Nitro ANV15-41
 - This computer is equipped with a built-in dedicated graphics card (NVIDIA GeForce RTX 4060 Laptop GPU). This allows our program to run faster despite complicated and time-intensive ML techniques.
+Google Colab Workspace Online GPUs were also employed in the creation and training of the models used in the application.
 
 Software Installed:
 - Windows 11
@@ -40,7 +52,7 @@ Software Installed:
 - Libraries/Frameworks: We have installed mediapipe, open-cv, tensorflow, keras, pandas, numpy, sci-kit learn, nltk, pytorch, moviepy, ffmpeg, expo, sqlalchemy, passlib, pydantic, expo, fastapi, uvicorn, and react-native
 - WebSockets for server
 
-## Code structure:
+## Code Structure:
 The main two folders with our code are "app" and "backend." The "app" folder contains the UI-related code, while the "backend" folder contains scripts for the backend of our app, which we have set up locally using WebSockets. 
 
 Due to the large size of the models, we did not upload them here; however, they are available for download at https://drive.google.com/drive/folders/1x0KjHnAD7iHUkfxQgbU40-mMhUUc9zPu?usp=sharing. To view the model architectures and frameworks we used, you can find them inside the "backend" folder.
@@ -65,7 +77,7 @@ This project's development has the need for intensive operations using libraries
 Google Colab's services offered a solution for our team. The workspace provides access to free GPUs and TPUs requiring only a stable internet connection. As such, these teammates were able to collaborate using this workspace. Then, other teammates were able to implement their changes which included some of the models, e.g. ASL Gloss → English Text, English Text → ASL Gloss, and English Text → Speech: https://colab.research.google.com/drive/1vo6ZUE-q_wBkPd7w1GoT63aWinTPiAA9
 
 ### Project Testing 
-Once we created a minimum viable product (MVP) as well as we continued to develop the application, we frequently tested our models to ensure accuracy and limit bias. You can find our testing documentation at the folder called "testing_code" which contains evaluation scripts as well as results for the two models employed.
+Once we created a minimum viable product (MVP) as well as while we continued to develop the application, we frequently tested our models to ensure accuracy and limit bias. You can find our testing documentation at the folder called "testing_code" which contains evaluation scripts as well as results for the two models employed.
 
 Along with this, we systematically tested our ASL → Text model using our camera as well as doing the same for other features (Text → Speech, Text → Gloss, etc.) to ensure the user experience worked properly.
 
