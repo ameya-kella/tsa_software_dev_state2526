@@ -25,7 +25,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 
 const USE_MOCK_TRANSCRIBE = false;
-const STORAGE_KEY = "unified_conversation_v1";
+const STORAGE_KEY = "draft_conversation";
 
 const WS_URL = "ws://localhost:8000/ws";
 export const API_BASE = "http://localhost:8000";
@@ -66,7 +66,10 @@ export default function SpeechScreen() {
   const recordingRef = useRef<Audio.Recording | null>(null);
   const webRecorderRef = useRef<MediaRecorder | null>(null);
   const webChunksRef = useRef<Blob[]>([]);
-  const params = useLocalSearchParams<{ deafText?: string }>();
+  const params = useLocalSearchParams<{
+    deafText?: string;
+    sessionId?: string;
+  }>();
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const messageQueue = useRef<ChatMsg[]>([]);
 
@@ -77,14 +80,8 @@ export default function SpeechScreen() {
 
     ws.onopen = () => {
       console.log("WS connected");
-
-      if (messageQueue.current.length > 0) {
-        console.log("Flushing queued messages:", messageQueue.current);
-
-        // concept of "queueing" so that messages are not lost even if server is not connected yet
-        setMessages((prev) => [...prev, ...messageQueue.current]);
-        messageQueue.current.forEach((msg) => console.log("Message displayed on screen from queue:", msg));
-
+      if (!params.sessionId && messageQueue.current.length > 0) {
+        setMessages(prev => [...prev, ...messageQueue.current]);
         messageQueue.current = [];
       }
 
@@ -102,7 +99,12 @@ export default function SpeechScreen() {
     ws.onmessage = (event) => {
       try {
         const msg: ChatMsg = JSON.parse(event.data);
-        setMessages((prev) => [...prev, msg]);
+
+        setMessages((prev) => {
+          const exists = prev.find((m) => m.id === msg.id);
+          if (exists) return prev;
+          return [...prev, msg];
+        });
       } catch {}
     };
 
@@ -117,24 +119,37 @@ export default function SpeechScreen() {
   useEffect(() => {
     if (!params.deafText) return;
 
-    setMessages((prev) => {
-      const exists = prev.find((m) => m.sender === "deaf" && m.text === params.deafText);
-      if (exists) return prev;
-      const id = String(Date.now()) + "_" + Math.random().toString(16).slice(2);
-      const newMsg: ChatMsg = { id, sender: "deaf", text: params.deafText!, ts: Date.now() };
-
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify(newMsg));
-      } else {
-        messageQueue.current.push(newMsg);
-        console.log("WS not ready, queued deaf message");
-        console.log("Current queue:", messageQueue.current);
-
-      }
-
-      return [...prev, newMsg];
-    });
+    addMessage("deaf", params.deafText);
   }, [params.deafText]);
+
+  useEffect(() => {
+    const loadSession = async () => {
+      if (!params.sessionId) return;
+
+      try {
+        const res = await fetch(
+          `http://localhost:8000/messages/session/${params.sessionId}`
+        );
+        const data = await res.json();
+
+        setMessages((prev) => {
+          const merged = [...prev];
+
+          data.forEach((msg) => {
+            if (!merged.find((m) => m.id === msg.id)) {
+              merged.push(msg);
+            }
+          });
+
+          return merged.sort((a, b) => a.ts - b.ts);
+        });
+      } catch (err) {
+        console.error("Failed to load session", err);
+      }
+    };
+
+    loadSession();
+  }, [params.sessionId]);
 
   // scroll to bottom
   useEffect(() => {
@@ -142,6 +157,33 @@ export default function SpeechScreen() {
     listRef.current.scrollToEnd({ animated: true });
   }, [messages]);
 
+  // Persisting messages in convo
+  useEffect(() => {
+  const loadMessages = async () => {
+    if (params.sessionId) {
+      try {
+        const res = await fetch(`${API_BASE}/messages/session/${params.sessionId}`);
+        const data = await res.json();
+        setMessages(data.sort((a,b) => a.ts - b.ts));
+      } catch (err) {
+        console.error("Failed to load session", err);
+      }
+    } else {
+      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      if (saved) setMessages(JSON.parse(saved));
+    }
+  };
+
+  loadMessages();
+}, [params.sessionId]);
+
+  useEffect(() => {
+    if (params.sessionId) return;
+
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  }, [messages, params.sessionId]);
+
+  
   // converting to ASL-style english
   const sendToAslStyleEnglish = async (text: string) => {
     if (USE_MOCK_TRANSCRIBE) return text;
@@ -159,42 +201,29 @@ export default function SpeechScreen() {
     const id = String(Date.now()) + "_" + Math.random().toString(16).slice(2);
     const newMsg: ChatMsg = { id, sender, text, ts: Date.now() };
 
-    setMessages((prev) => [...prev, newMsg]);
+    setMessages(prev => [...prev, newMsg]);
 
+    // WebSocket
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(newMsg));
     } else {
       messageQueue.current.push(newMsg);
-      console.log("WS not ready, queued message");
     }
 
-    if (sender === "hearing") {
+    // append to database if resuming session
+    if (params.sessionId) {
       try {
-        const aslText = await sendToAslStyleEnglish(text);
-
-        const res = await fetch(ASL_VIDEO_URL, {
+        await fetch(`${API_BASE}/append_message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gloss: aslText }),
+          body: JSON.stringify({ session_id: params.sessionId, message: newMsg }),
         });
-
-        const videoData = await res.json();
-
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === id
-              ? {
-                  ...m,
-                  aslText,
-                  aslVideo: API_BASE + videoData.video_url,
-                  aslThumbnail: API_BASE + videoData.thumbnail_url,
-                }
-              : m
-          )
-        );
       } catch (err) {
-        console.error("ASL error", err);
+        console.error("Append failed", err);
       }
+    } else {
+      // persist draft only if NOT resuming
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([...messages, newMsg]));
     }
   };
 
@@ -205,6 +234,7 @@ export default function SpeechScreen() {
     );
     return () => clearTimeout(t);
   }, [messages.length]);
+  
 
   const sendTyped = async () => {
     if (!typedText.trim()) return;
@@ -424,9 +454,10 @@ export default function SpeechScreen() {
           {messages.length ? (
             <FlatList
               ref={listRef}
-              data={[...messages].sort((a, b) => a.ts - b.ts)}
+              data={[...messages].sort((a,b) => a.ts - b.ts)}
               keyExtractor={(m) => m.id}
               renderItem={renderItem}
+              extraData={{ showAslUnderHearing, messagesLength: messages.length }}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
             />

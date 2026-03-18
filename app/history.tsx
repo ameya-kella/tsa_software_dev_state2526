@@ -17,15 +17,28 @@ type ChatMsg = {
   ts: number;
 };
 
+type Session = {
+  id: string;
+  title: string;
+  created_at: number;
+};
+
+//history of conversations
 export default function HistoryScreen() {
   const router = useRouter();
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
 
   const load = async () => {
-    const raw = await AsyncStorage.getItem(CHAT_KEY);
-    const msgs = raw ? JSON.parse(raw) : [];
-    msgs.sort((a: ChatMsg, b: ChatMsg) => a.ts - b.ts);
-    setMessages(msgs);
+    const creds = await AsyncStorage.getItem("asl_user_credentials");
+    if (!creds) return;
+
+    const { username } = JSON.parse(creds);
+
+    const res = await fetch(`http://localhost:8000/sessions/${username}`);
+    const data = await res.json();
+
+    setSessions(data);
   };
 
   useFocusEffect(useCallback(() => { load(); }, []));
@@ -42,28 +55,27 @@ export default function HistoryScreen() {
         </View>
       </SafeAreaView>
 
-      {messages.length === 0 ? (
+      {sessions.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No conversations saved yet.</Text>
         </View>
       ) : (
         <FlatList
-          data={[...messages].reverse()}
+          data={sessions}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <View style={[
-              styles.bubble,
-              item.sender === "deaf" ? styles.bubbleDeaf : styles.bubbleHearing,
-            ]}>
-              <Text style={styles.bubbleSender}>
-                {item.sender === "deaf" ? "ASL" : "Hearing"}
-              </Text>
-              <Text style={styles.bubbleText}>{item.text}</Text>
-              <Text style={styles.bubbleTime}>
-                {new Date(item.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </Text>
-            </View>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/speech",
+                  params: { sessionId: item.id },
+                })
+              }
+            >
+              <View style={styles.bubble}>
+                <Text style={{ color: "white" }}>{item.title}</Text>
+              </View>
+            </TouchableOpacity>
           )}
         />
       )}

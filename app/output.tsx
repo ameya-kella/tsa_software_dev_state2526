@@ -8,6 +8,7 @@ type Params = {
   text?: string; // text from hearing person
   deafText?: string; // text from deaf person
   autoGoConversation?: string;
+  sessionId?: string;
 };
 
 export default function OutputScreen() {
@@ -47,6 +48,7 @@ export default function OutputScreen() {
             pathname: "/speech",
             params: {
               deafText: params.deafText || params.text,
+              sessionId: params.sessionId,
             },
           });
         }
@@ -108,12 +110,17 @@ export default function OutputScreen() {
           </TouchableOpacity>
         </View>
 
-        <Link href="/camera" asChild>
-          <TouchableOpacity style={styles.primary}>
+        <TouchableOpacity
+            style={styles.primary}
+            onPress={() =>
+              router.push({
+                pathname: "/camera",
+                params: { sessionId: params.sessionId },
+              })
+            }>
             <Text style={styles.primaryText}>Back to Interpreter</Text>
             <Ionicons name="arrow-forward" size={18} color="white" />
           </TouchableOpacity>
-        </Link>
       </View>
     </View>
   );

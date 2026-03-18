@@ -14,10 +14,12 @@ import logging
 import whisper
 import shutil
 from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, Mapped, mapped_column
 from passlib.context import CryptContext
 from pydantic import BaseModel
 import nltk
+import time
 
 
 ## change as needed for mock tests **
@@ -304,6 +306,125 @@ async def generate_asl_video(data: dict):
     except Exception as e:
         logger.exception("Video generation error")
         return {"error": str(e)}
+
+from sqlalchemy import ForeignKey
+
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    title = Column(String, default="Conversation")
+    created_at = Column(Integer)
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(String, primary_key=True, index=True)
+    session_id = Column(String, ForeignKey("chat_sessions.id"))
+    sender = Column(String)
+    text = Column(String)
+    timestamp = Column(Integer)
+
+class SessionCreate(BaseModel):
+    username: str
+    messages: list
+from pydantic import BaseModel
+
+class AppendMessage(BaseModel):
+    session_id: str
+    message: dict
+
+
+
+Base.metadata.create_all(bind=engine)
+
+@app.post("/append_message")
+def append_message(data: AppendMessage, db: Session = Depends(get_db)):
+    msg = data.message
+
+    db_msg = Conversation(
+        id=msg["id"],
+        session_id=data.session_id,
+        sender=msg["sender"],
+        text=msg["text"],
+        timestamp=msg["ts"]
+    )
+
+    db.add(db_msg)
+    db.commit()
+
+    return {"status": "ok"}
+
+# saving a conversation session in history
+@app.post("/save_session")
+def save_session(data: SessionCreate, db: Session = Depends(get_db)):
+    # Find user
+    user = db.query(User).filter(User.username == data.username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    session_id = str(uuid.uuid4())
+
+    # create chat session
+    session = ChatSession(
+        id=session_id,
+        user_id=user.id,
+        title="Conversation",
+        created_at=int(time.time() * 1000)
+    )
+    db.add(session)
+
+    # save all messages
+    for msg in data.messages:
+        db_msg = Conversation(
+            id=msg["id"],
+            session_id=session_id,
+            sender=msg["sender"],
+            text=msg["text"],
+            timestamp=msg["ts"]
+        )
+        db.add(db_msg)
+
+    db.commit()
+
+    return {"status": "saved", "session_id": session_id}
+
+# get all sessions for a user
+@app.get("/sessions/{username}")
+def get_sessions(username: str, db: Session = Depends(get_db)):
+    # find user
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # get sessions for user
+    sessions = db.query(ChatSession).filter(ChatSession.user_id == user.id).all()
+
+    return [
+        {
+            "id": s.id,
+            "title": s.title,
+            "created_at": s.created_at
+        }
+        for s in sessions
+    ]
+
+@app.get("/messages/session/{session_id}")
+def get_session_messages(session_id: str, db: Session = Depends(get_db)):
+    msgs = db.query(Conversation).filter(
+        Conversation.session_id == session_id
+    ).all()
+
+    return [
+        {
+            "id": m.id,
+            "sender": m.sender,
+            "text": m.text,
+            "ts": m.timestamp
+        }
+        for m in msgs
+    ]
 
 @app.get("/video/{video_id}")
 def get_video(video_id: str, request: Request):

@@ -22,7 +22,7 @@ export default function LoginScreen() {
     }
 
     try {
-      const endpoint = isSignUp ? "register" : "login";
+      const endpoint = isSignUp ? "register" : "login"; // 2 options: login or sign up
 
       const response = await fetch(`http://localhost:8000/${endpoint}`, {
         method: "POST",

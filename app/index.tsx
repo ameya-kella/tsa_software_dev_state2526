@@ -29,26 +29,47 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    const resetInterpreterFlow = async () => {
+    const run = async () => {
       try {
-        // Clear saved messages
-        await AsyncStorage.removeItem("speech_messages_v1");
+        const draft = await AsyncStorage.getItem("draft_conversation");
+        const activeSession = await AsyncStorage.getItem("active_session_id");
+        if (draft && !activeSession) {
+          const messages = JSON.parse(draft);
 
-        // Reset backend demo flow
+          if (messages && messages.length >= 2) {
+            const creds = await AsyncStorage.getItem("asl_user_credentials");
+            if (creds) {
+              const { username } = JSON.parse(creds);
+
+              await fetch("http://localhost:8000/save_session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, messages }),
+              });
+
+              console.log("Conversation saved");
+            }
+          }
+
+          await AsyncStorage.removeItem("draft_conversation");
+        }
+
+        // reset backend flow
         if (global.ws && global.ws.readyState === WebSocket.OPEN) {
           global.ws.send(JSON.stringify({
             type: "context",
             flow: "interpreter",
           }));
-          console.log("Sent flow reset to backend");
         }
+
       } catch (err) {
-        console.error("Failed to clear messages or reset flow", err);
+        console.error("Home init error", err);
       }
     };
 
-    resetInterpreterFlow();
+    run();
   }, []);
+
 
 
   useEffect(() => {
@@ -152,7 +173,6 @@ export default function HomeScreen() {
           <TouchableOpacity style={styles.card} onPress={() => router.push("/history")}>
             <Text style={styles.cardTitle}>History</Text>
             <Text style={styles.cardDesc}>Past Conversations</Text>
-            <Text style={styles.cardFoot}>Saved Locally</Text>
           </TouchableOpacity>
         </View>
 

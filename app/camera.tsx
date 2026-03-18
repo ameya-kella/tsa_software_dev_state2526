@@ -404,7 +404,7 @@ type ChatMsg = {
   ts: number;
 };
 
-const CHAT_KEY = "unified_conversation_v1";
+const CHAT_KEY = "conversation_messages_v1";
 
 const appendChatMessage = async (msg: ChatMsg) => {
   try {
